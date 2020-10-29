@@ -1,0 +1,32 @@
+{
+  "name": "@foxql/foxql-peer",
+  "version": "1.0.0",
+  "description": "Simple webrtc implemantation for p2p communication",
+  "main": "index.js",
+  "scripts": {
+    "dev": "parcel develop/index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boraozer/foxql-peer.git"
+  },
+  "keywords": [
+    "p2p",
+    "peer",
+    "to",
+    "peer",
+    "webrtc"
+  ],
+  "author": "Bora Erdinç Özer",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/boraozer/foxql-peer/issues"
+  },
+  "homepage": "https://github.com/boraozer/foxql-peer#readme",
+  "devDependencies": {
+    "parcel": "^1.12.4"
+  },
+  "dependencies": {
+    "socket.io-client": "^2.3.1"
+  }
+}
