@@ -1,11 +1,17 @@
+import 'regenerator-runtime/runtime'
 import io from 'socket.io-client';
+import eventList from './src/events.js';
+import Peer from './src/untils/peer.js';
+
 class foxqlPeer {
 
-    serverOptions = {
+    socketOptions = {
         host : '127.0.0.1',
         port : 1923,
         protocol : 'http'
     };
+
+    maxConnections = 100;
 
     iceServers = [
         {'urls': 'stun:stun.stunprotocol.org:3478'},
@@ -13,26 +19,40 @@ class foxqlPeer {
     ];
 
     avaliableUseKeys = [
-        'serverOptions'
+        'serverOptions',
+        'maxConnections'
     ];
+    socket;
 
-    clientId;
-    serverConnection;
+    user;
 
     constructor()
     {
-        this.serverConnection = io(`${this.serverOptions.protocol}://${this.serverOptions.host}:${this.serverOptions.port}`);    
-        this.clientId = this.serverConnection.id;
+        this.socket = io(`${this.socketOptions.protocol}://${this.socketOptions.host}:${this.socketOptions.port}`);   
+        this.loadEvents();
 
-        this.serverConnection.on('connect', ()=>{
-            this.serverConnection.emit('get-offer', 20);
-            console.log('Connected!');
-        });
+        this.socket.on('connect', ()=>{
+            const userId = this.socket.id;
 
-        this.serverConnection.on('get-offer', (data)=>{
-            console.log(data);
+            this.user = new Peer({
+                userId : userId,
+                options : {
+                    iceServers : this.iceServers
+                },
+                socket : this.socket
+            });
+
+            /** Find a not connected users. */
+            this.socket.emit('findNewNodes', this.maxConnections);
         });
         
+    }
+
+    loadEvents()
+    {
+        eventList.forEach(event => {   
+            this.socket.on(event.name, data => {event.listener(this, data)});
+        });
     }
 
     use(nameSpace, values)
