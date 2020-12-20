@@ -33,6 +33,18 @@ network.onPeer('question', async (data)=>{
 });
 ```
 
+#### Send data all connected peers
+
+``` javascript
+network.broadcast({
+    listener : 'question',
+    data : {
+        message : 'message content!'
+    }
+});
+```
+
+
 #### Send data spesific peerId
 
 ``` javascript
