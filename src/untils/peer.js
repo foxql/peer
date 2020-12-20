@@ -7,32 +7,37 @@ class Peer{
 
     peerId;
 
-    constructor(options, socket, id)
+    constructor(options, socket, id, emitter)
     {
+        this.options = options;
         this.peerId = id;
         this.socket = socket;
 
-        this.make(options);
+        this.make(emitter);
     }
 
-    make()
+    make(emitter)
     {
         this.peer = new RTCPeerConnection(this.options)
         this.dataChannel = this.peer.createDataChannel(this.channelName, {negotiated: true, id: 0});
-        this.dataChannel.onopen = this.dataChannelOpenHandler;
-        this.dataChannel.onmessage = this.dataChannelOnMessage;
+        this.dataChannel.onopen = this.dataChannelOpenHandler.bind(this);
+        if(typeof emitter === 'function'){
+            this.dataChannel.onmessage = (e)=>{
+                const object = JSON.parse(e.data);
+        
+                const name = object.listener;
+                const data = object.data;
 
+                emitter(name, data);
+            };
+        }
+    
         this.peer.oniceconnectionstatechange = e => console.log(this.peer.iceConnectionState);
     }
 
     dataChannelOpenHandler()
     {
-        console.log("Kanal istanbul açıldı");
-    }
-
-    dataChannelOnMessage(e)
-    {
-        console.log(`> ${e.data}`);
+        console.log(`Data channel is ready ${this.peerId}`);
     }
 
     send(message)
@@ -46,7 +51,6 @@ class Peer{
         await this.peer.setLocalDescription(offer);
         this.peer.onicecandidate = ({candidate}) => {
             if (candidate) return;
-            document.querySelector('#offer').value = this.peer.localDescription.sdp
 
             this.socket.emit('offer', {
                 to : this.peerId,
@@ -63,7 +67,6 @@ class Peer{
         await this.peer.setLocalDescription(answer);
         this.peer.onicecandidate = ({candidate}) => {
             if (candidate) return;
-            document.querySelector('#answer').value = this.peer.localDescription.sdp
             this.socket.emit('answer', {
                 to : this.peerId,
                 offer : this.peer.localDescription.sdp

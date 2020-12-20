@@ -14,7 +14,7 @@ class foxqlPeer {
     };
 
     maxConnections = 5;
-    connectionListenerIterval = 100;
+    myPeerId;
 
     iceServers = [
         {'urls': 'stun:stun.stunprotocol.org:3478'},
@@ -28,6 +28,8 @@ class foxqlPeer {
     socket;
     connections = {};
 
+    peerEvents = [];
+
     constructor()
     {
         this.socket = io(`${this.socketOptions.protocol}://${this.socketOptions.host}:${this.socketOptions.port}`);   
@@ -35,9 +37,27 @@ class foxqlPeer {
 
         this.socket.on('connect', ()=>{
             /** Find a not connected users. */
+            this.myPeerId = this.socket.id;
             this.socket.emit('call', this.maxConnections);
         });
 
+    }
+
+    onPeer(name, listener)
+    {
+        if(this.peerEvents[name] == undefined) this.peerEvents[name] = [];
+        this.peerEvents[name].push(listener.bind(this));
+    }
+
+    emitPeer(name, data)
+    {
+        if(this.peerEvents[name] == undefined) return false;
+
+        const callbackMethod = (callback) => {
+            callback(data);
+        };
+
+        this.peerEvents[name].forEach(callbackMethod);
     }
 
     loadEvents()
@@ -54,12 +74,12 @@ class foxqlPeer {
     
     broadcast(data)
     {
-
         const validate = dataModel(data);
 
         if(validate.error) {return validate}
 
         const currentConnections = this.connections;
+        data.data._by = this.myPeerId;
         const dataPackage = JSON.stringify(data);
 
         for(let id in currentConnections) {
@@ -69,12 +89,28 @@ class foxqlPeer {
 
     }
 
+    send(id, data)
+    {
+        const validate = dataModel(data);
+
+        if(validate.error) {return validate}
+
+        const connection = this.connections[id] || false;
+        if(!connection) return false;
+
+        data.data._by = this.myPeerId;
+        const dataPackage = JSON.stringify(data);
+
+        connection.send(dataPackage);
+    }
+
     newPeer(userId)
     {
         return new Peer(
             this.iceServers,
             this.socket,
-            userId
+            userId,
+            this.emitPeer.bind(this)
         );
     }
 

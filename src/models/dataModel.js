@@ -12,9 +12,7 @@ const requirements = {
             min : 3
         },
         data : {
-            type : 'object',
-            min : 3,
-            max : 1000
+            type : 'object'
         }
     }
 };

@@ -24,3 +24,24 @@ network.use('iceServers', [
     {'urls': 'stun:stun.your_example_stun_server.org:1111'}
 ]);
 ```
+
+#### Create peer data channel listener
+
+``` javascript
+network.onPeer('question', async (data)=>{
+    console.log(`Getting data by ${data._by}`);
+});
+```
+
+#### Send data spesific peerId
+
+``` javascript
+network.send('kumP91ZUJf8FVNOKAACp', {
+    listener : 'message',
+    data : {
+        message : 'A message content!'
+    }
+})
+```
+
+
