@@ -1,112 +1,80 @@
 class Peer{
+    channelName = 'foxql_native_channel'
 
-    options = {
-        iceServers : {}
-    };
-
-    userId;
     peer;
+    dataChannel;
     socket;
 
-    connections = {};
-    connectionLength = 0;
+    peerId;
 
-    events = {};
-    connectionListenerIterval = 100;
-
-    constructor({userId, options, socket})
+    constructor(options, socket, id)
     {
+        this.peerId = id;
         this.socket = socket;
-        this.options = {...this.options, ...options}
 
-        this.userId = userId;
-        this.peer = new RTCPeerConnection(this.options);
+        this.make(options);
     }
 
-    on(name, listener)
+    make()
     {
-        if(this.events[name] == undefined) this.events[name] = [];
-        this.events[name].push(listener);
+        this.peer = new RTCPeerConnection(this.options)
+        this.dataChannel = this.peer.createDataChannel(this.channelName, {negotiated: true, id: 0});
+        this.dataChannel.onopen = this.dataChannelOpenHandler;
+        this.dataChannel.onmessage = this.dataChannelOnMessage;
+
+        this.peer.oniceconnectionstatechange = e => console.log(this.peer.iceConnectionState);
     }
 
-    emit(name, data)
+    dataChannelOpenHandler()
     {
-        if(this.events[name] == undefined) return false;
+        console.log("Kanal istanbul açıldı");
+    }
 
-        const callback = (callback) => {
-            callback(data);
+    dataChannelOnMessage(e)
+    {
+        console.log(`> ${e.data}`);
+    }
+
+    send(message)
+    {
+        this.dataChannel.send(message);
+    }
+
+    async createOffer()
+    {
+        const offer = await this.peer.createOffer();
+        await this.peer.setLocalDescription(offer);
+        this.peer.onicecandidate = ({candidate}) => {
+            if (candidate) return;
+            document.querySelector('#offer').value = this.peer.localDescription.sdp
+
+            this.socket.emit('offer', {
+                to : this.peerId,
+                offer : this.peer.localDescription.sdp
+            });
         };
-
-        this.events[name].forEach(callback);
     }
 
-    call(userList)
+    async createAnswer(offerSdp)
     {
-        userList.forEach(async userId => {
-
-            const offer = await this.peer.createOffer();
-            await this.peer.setLocalDescription(new RTCSessionDescription(offer));
-
-            this.connections[userId] = {
-                ready : false
-            };
-
-            this.connectionLength += 1;
-
-            this.socket.emit('callUser',{
-                offer : offer,
-                to : userId
+        this.connectionStart = true;
+        await this.peer.setRemoteDescription({type: "offer", sdp: offerSdp});
+        const answer = await this.peer.createAnswer()
+        await this.peer.setLocalDescription(answer);
+        this.peer.onicecandidate = ({candidate}) => {
+            if (candidate) return;
+            document.querySelector('#answer').value = this.peer.localDescription.sdp
+            this.socket.emit('answer', {
+                to : this.peerId,
+                offer : this.peer.localDescription.sdp
             });
-
-        });
+        };
     }
 
-
-    async transferOfferSdp(payload)
+    async madeAnswer(answerSdp)
     {
-        try {
-            await this.peer.setRemoteDescription(
-                new RTCSessionDescription(payload.offer)
-            );
-
-            const answer = await this.peer.createAnswer();
-            await this.peer.setLocalDescription(new RTCSessionDescription(answer));
-
-            this.socket.emit('makeAnswer',{
-                answer : answer,
-                to : payload.socket
-            });
-        }catch(e)
-        {
-            console.log(e);
-        }
+        this.peer.setRemoteDescription({type: "answer", sdp: answerSdp});
     }
-
-    async answerMade(payload)
-    {
-        try {
-
-            await this.peer.setRemoteDescription(
-                new RTCSessionDescription(payload.answer)
-            );
-            
-            if(this.connections[payload.socket] === undefined){
-                 this.call([payload.socket]);
-            }else{
-                this.connections[payload.socket] = {
-                    ready : true
-                };
-            }
-
-           
-
-        }catch(e)
-        {
-            this.connectionLength -= 1;
-            console.log(e);
-        }
-    }
-
 }
 
 

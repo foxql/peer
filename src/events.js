@@ -1,9 +1,10 @@
-import findNewNodes from './events/findNewNodes.js';
-import callUser from './events/callUser.js';
-import answerMade from './events/answerMade.js';
-
+import call from './events/call.js'
+import offer from './events/offer.js'
+import answer from './events/answer.js';
+import drop from './events/drop.js';
 export default [
-    findNewNodes,
-    callUser,
-    answerMade
+    call,
+    offer,
+    answer,
+    drop
 ];

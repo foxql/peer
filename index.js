@@ -3,15 +3,18 @@ import io from 'socket.io-client';
 import eventList from './src/events.js';
 import Peer from './src/untils/peer.js';
 
-class foxqlPeer {
+import dataModel from './src/models/dataModel.js';
 
+class foxqlPeer {
+    
     socketOptions = {
         host : '127.0.0.1',
         port : 1923,
         protocol : 'http'
     };
 
-    maxConnections = 100;
+    maxConnections = 5;
+    connectionListenerIterval = 100;
 
     iceServers = [
         {'urls': 'stun:stun.stunprotocol.org:3478'},
@@ -23,8 +26,7 @@ class foxqlPeer {
         'maxConnections'
     ];
     socket;
-
-    user;
+    connections = {};
 
     constructor()
     {
@@ -32,20 +34,10 @@ class foxqlPeer {
         this.loadEvents();
 
         this.socket.on('connect', ()=>{
-            const userId = this.socket.id;
-
-            this.user = new Peer({
-                userId : userId,
-                options : {
-                    iceServers : this.iceServers
-                },
-                socket : this.socket
-            });
-
             /** Find a not connected users. */
-            this.socket.emit('findNewNodes', this.maxConnections);
+            this.socket.emit('call', this.maxConnections);
         });
-        
+
     }
 
     loadEvents()
@@ -59,7 +51,32 @@ class foxqlPeer {
     {
         if(this.avaliableUseKeys.includes(nameSpace)) this[nameSpace] = {...this[nameSpace], ...values};
     }
+    
+    broadcast(data)
+    {
 
+        const validate = dataModel(data);
+
+        if(validate.error) {return validate}
+
+        const currentConnections = this.connections;
+        const dataPackage = JSON.stringify(data);
+
+        for(let id in currentConnections) {
+            const peer = currentConnections[id];
+            peer.send(dataPackage)
+        }
+
+    }
+
+    newPeer(userId)
+    {
+        return new Peer(
+            this.iceServers,
+            this.socket,
+            userId
+        );
+    }
 
 }
 
