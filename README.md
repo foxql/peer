@@ -1,7 +1,12 @@
 # foxql-peer
 Simple webrtc implemantation for p2p communication - this project not finished.
 
-### Documentation
+## Documentation
+
+#### Install
+```
+npm i @foxql/foxql-peer
+```
 
 
 #### Simple usage
