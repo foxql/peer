@@ -6,32 +6,32 @@ import Peer from './src/untils/peer.js';
 import dataModel from './src/models/dataModel.js';
 
 class foxqlPeer {
-    
-    socketOptions = {
-        host : '127.0.0.1',
-        port : 1923,
-        protocol : 'http'
-    };
-
-    maxConnections = 5;
-    myPeerId;
-
-    iceServers = [
-        {'urls': 'stun:stun.stunprotocol.org:3478'},
-        {'urls': 'stun:stun.l.google.com:19302'}
-    ];
-
-    avaliableUseKeys = [
-        'serverOptions',
-        'maxConnections'
-    ];
-    socket;
-    connections = {};
-
-    peerEvents = [];
-
     constructor()
     {
+
+        this.socketOptions = {
+            host : '127.0.0.1',
+            port : 1923,
+            protocol : 'http'
+        };
+    
+        this.maxConnections = 5;
+        this.myPeerId = null;
+    
+        this.iceServers = [
+            {'urls': 'stun:stun.stunprotocol.org:3478'},
+            {'urls': 'stun:stun.l.google.com:19302'}
+        ];
+    
+        this.avaliableUseKeys = [
+            'serverOptions',
+            'maxConnections'
+        ];
+
+        this.connections = {};
+    
+        this.peerEvents = [];
+
         this.socket = io(`${this.socketOptions.protocol}://${this.socketOptions.host}:${this.socketOptions.port}`);   
         this.loadEvents();
 

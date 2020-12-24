@@ -1,14 +1,7 @@
 class Peer{
-    channelName = 'foxql_native_channel'
-
-    peer;
-    dataChannel;
-    socket;
-
-    peerId;
-
     constructor(options, socket, id, emitter)
     {
+        this.channelName = 'foxql_native_channel'
         this.options = options;
         this.peerId = id;
         this.socket = socket;
