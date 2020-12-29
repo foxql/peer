@@ -32,7 +32,9 @@ class foxqlPeer {
     
         this.peerEvents = [];
 
-        this.socket = io(`${this.socketOptions.protocol}://${this.socketOptions.host}:${this.socketOptions.port}`);   
+        this.socket = io(`${this.socketOptions.protocol}://${this.socketOptions.host}:${this.socketOptions.port}`, {
+            reconnection : false
+        });   
         this.loadEvents();
 
         this.socket.on('connect', ()=>{
