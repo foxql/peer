@@ -10,9 +10,9 @@ class foxqlPeer {
     {
 
         this.socketOptions = {
-            host : '127.0.0.1',
-            port : 1923,
-            protocol : 'http'
+            host : 'foxql-signal.herokuapp.com',
+            port : null,
+            protocol : 'https'
         };
     
         this.maxConnections = 5;
@@ -24,7 +24,7 @@ class foxqlPeer {
         ];
     
         this.avaliableUseKeys = [
-            'serverOptions',
+            'socketOptions',
             'maxConnections'
         ];
 
@@ -32,17 +32,26 @@ class foxqlPeer {
     
         this.peerEvents = [];
 
-        this.socket = io(`${this.socketOptions.protocol}://${this.socketOptions.host}:${this.socketOptions.port}`, {
+    }
+
+    open()
+    {
+        if(typeof this.socketOptions.port == 'integer') {
+            this.socketOptions.port = ':'+this.socketOptions.port 
+        }else{
+            this.socketOptions.port = '';
+        }
+        this.socket = io(`${this.socketOptions.protocol}://${this.socketOptions.host}${this.socketOptions.port}`, {
             reconnection : false
         });   
         this.loadEvents();
 
         this.socket.on('connect', ()=>{
+            console.log('hihi');
             /** Find a not connected users. */
             this.myPeerId = this.socket.id;
             this.socket.emit('call', this.maxConnections);
         });
-
     }
 
     onPeer(name, listener)
