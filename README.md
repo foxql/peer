@@ -19,10 +19,10 @@ const network = new peer();
 #### Change Default Configuration
 
 ``` javascript
-network.use('serverOptions', {
-    url : '0.0.0.0',
-    port : 3000,
-    protocol : 'http'
+network.use('socketOptions', {
+    host : 'foxql-signal.herokuapp.com',
+    port : null,
+    protocol : 'https'
 });
 
 network.use('iceServers', [
