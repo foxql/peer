@@ -12,6 +12,12 @@ network.use('socketOptions', {
 
 network.onPeer('question', async (data)=>{
     console.log(data._by, 'Tarafından bir soru alındı.');
+
+    if(data._simulate) { // simulation case dedected.
+        /** Simulate event and return boolean */
+        return true;
+    }
+
     network.send(data._by, {
         listener : 'answer',
         data : {
@@ -22,11 +28,8 @@ network.onPeer('question', async (data)=>{
     return true;
 });
 
-let mm = 0;
-
 network.onPeer('answer', async (data)=>{
-    mm++;
-    console.log(data._by, 'Tarafından bir cevap alındı.', mm);
+    console.log(data._by, 'Tarafından bir cevap alındı.');
 });
 
 

@@ -30,10 +30,10 @@ class Peer{
 
     dataChannelOpenHandler()
     {
-        console.log(`Data channel is ready ${this.peerId}`);
+        //console.log(`Data channel is ready ${this.peerId}`);
     }
 
-    send(message)
+    async send(message)
     {
         this.dataChannel.send(message);
     }
