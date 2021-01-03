@@ -4,12 +4,11 @@ import peer from '../index.js';
 const network = new peer();
 
 network.use('socketOptions', {
-    host : 'foxql-signal.herokuapp.com',
-    port : null,
-    protocol : 'https'
+    host : '127.0.0.1',
+    port : 1923,
+    protocol : 'http'
 });
 
-network.open();
 
 network.onPeer('question', async (data)=>{
     console.log(data._by, 'Tarafından bir soru alındı.');
@@ -19,12 +18,19 @@ network.onPeer('question', async (data)=>{
             message : 'Cevap Gönderildi'
         }
     })
+
+    return true;
 });
+
+let mm = 0;
 
 network.onPeer('answer', async (data)=>{
-    console.log(data._by, 'Tarafından bir cevap alındı.');
+    mm++;
+    console.log(data._by, 'Tarafından bir cevap alındı.', mm);
 });
 
+
+network.open();
 
 
 window.p2p = network;

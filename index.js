@@ -2,6 +2,7 @@ import 'regenerator-runtime/runtime'
 import io from 'socket.io-client';
 import eventList from './src/events.js';
 import Peer from './src/untils/peer.js';
+import RandomString from './src/untils/random.js';
 
 import dataModel from './src/models/dataModel.js';
 
@@ -28,15 +29,18 @@ class foxqlPeer {
             'maxConnections'
         ];
 
+        this.simulatedListenerDestroyTime = 250;
+        this.simulatedListenerAfterDatachannelTimeout = 300;
+
         this.connections = {};
     
-        this.peerEvents = [];
+        this.peerEvents = {};
 
     }
 
-    open()
+    open(simulateListener)
     {
-        if(typeof this.socketOptions.port == 'integer') {
+        if(typeof this.socketOptions.port == 'number') {
             this.socketOptions.port = ':'+this.socketOptions.port 
         }else{
             this.socketOptions.port = '';
@@ -47,12 +51,30 @@ class foxqlPeer {
         this.loadEvents();
 
         this.socket.on('connect', ()=>{
-            console.log('hihi');
-            /** Find a not connected users. */
             this.myPeerId = this.socket.id;
-            this.socket.emit('call', this.maxConnections);
+
+            this.socket.on('eventSimulation', async (eventObject)=>{
+                const targetMethod = this.peerEvents[eventObject.listener] || false;
+                eventObject.data._simulate = true;
+                const process = await targetMethod[0](eventObject.data);
+                if(process) {
+                    this.simulationIsDone(eventObject);
+                }
+            });
+
+            //this.socket.emit('call', this.maxConnections);
         });
     }
+
+
+    simulationIsDone(eventObject)
+    {
+        this.socket.emit('simulationDone', {
+            to : eventObject.data._by,
+            targetListener : eventObject.answerWaitingListener
+        });
+    }
+
 
     onPeer(name, listener)
     {
@@ -86,17 +108,53 @@ class foxqlPeer {
     broadcast(data)
     {
         const validate = dataModel(data);
-
         if(validate.error) {return validate}
+        
 
-        const currentConnections = this.connections;
         data.data._by = this.myPeerId;
-        const dataPackage = JSON.stringify(data);
 
-        for(let id in currentConnections) {
-            const peer = currentConnections[id];
-            peer.send(dataPackage)
-        }
+        const simulatedPeerListener = RandomString();
+
+        data.answerWaitingListener = simulatedPeerListener;
+
+        this.socket.emit('eventSimulation', data);
+
+        let peerPool = [];
+
+        this.socket.on(simulatedPeerListener, (peer)=>{
+            peerPool.push(peer);
+        })
+
+        setTimeout(()=>{
+            delete this.socket._callbacks['$'+simulatedPeerListener];
+
+            if(peerPool.length <= 0) return;
+
+            peerPool.forEach(peerId => {
+                if(this.connections[peerId] == undefined) {
+                    const peer = this.newPeer(peerId);
+                    peer.createOffer();
+                    this.connections[peerId] = peer;
+                }
+            });
+
+            const currentConnections = this.connections;
+            const dataPackage = JSON.stringify(data);
+
+            setTimeout(()=>{
+                for(let id in currentConnections) {
+                    const peer = currentConnections[id];
+                    const channel = peer.dataChannel;
+                    if(channel == undefined) {
+                        continue
+                    }
+                    if(channel.readyState !== 'open') {
+                        continue;
+                    }
+                    peer.send(dataPackage)
+                }
+            }, this.simulatedListenerAfterDatachannelTimeout);
+        }, this.simulatedListenerDestroyTime);
 
     }
 
