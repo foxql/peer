@@ -29,8 +29,8 @@ class foxqlPeer {
             'maxConnections'
         ];
 
-        this.simulatedListenerDestroyTime = 250;
-        this.simulatedListenerAfterDatachannelTimeout = 300;
+        this.simulatedListenerDestroyTime = 500;
+        this.simulatedListenerAfterDatachannelTimeout = 500;
 
         this.connections = {};
     
