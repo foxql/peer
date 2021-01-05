@@ -16,7 +16,9 @@ class foxqlPeer {
             protocol : 'https'
         };
     
-        this.maxConnections = 1;
+        this.networkStableConnectionSize = 50;
+        this.networkMaxConnectionSize = 100;
+        
         this.myPeerId = null;
     
         this.iceServers = [
@@ -29,8 +31,8 @@ class foxqlPeer {
             'maxConnections'
         ];
 
-        this.simulatedListenerDestroyTime = 500;
-        this.simulatedListenerAfterDatachannelTimeout = 500;
+        this.simulatedListenerDestroyTime = 400;
+        this.simulatedListenerAfterDatachannelTimeout = 400;
 
         this.connections = {};
     
@@ -56,12 +58,20 @@ class foxqlPeer {
 
             this.socket.on('eventSimulation', async (eventObject)=>{
                 const targetMethod = this.peerEvents[eventObject.listener] || false;
-                eventObject.data._simulate = true;
+                const targettingPeer = eventObject.data._by;
+
                 const process = await targetMethod[0](eventObject.data);
-                if(process) {
-                    this.simulationIsDone(eventObject);
+
+                if(this.connections[targettingPeer] == undefined) { // if not connected.
+                    eventObject.data._simulate = true;
+                    if(process) {
+                        this.simulationIsDone(eventObject);
+                    }
                 }
             });
+
+
+            this.socket.emit('call', this.networkStableConnectionSize);
         });
     }
 
@@ -111,9 +121,6 @@ class foxqlPeer {
         
 
         data.data._by = this.myPeerId;
-        let currentConnectionKeys =  Object.keys(this.connections);
-        let connectionLength = currentConnectionKeys.length;
-        let maxConnection = this.maxConnections;
 
         const simulatedPeerListener = RandomString();
 
