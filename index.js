@@ -47,9 +47,7 @@ class foxqlPeer {
         }else{
             this.socketOptions.port = '';
         }
-        this.socket = io(`${this.socketOptions.protocol}://${this.socketOptions.host}${this.socketOptions.port}`, {
-            reconnection : false
-        });   
+        this.socket = io(`${this.socketOptions.protocol}://${this.socketOptions.host}${this.socketOptions.port}`);   
 
         this.loadEvents();
 
