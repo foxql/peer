@@ -35,6 +35,7 @@ class foxqlPeer {
         this.simulatedListenerAfterDatachannelTimeout = 400;
 
         this.connections = {};
+        
     
         this.peerEvents = {};
 
@@ -111,12 +112,30 @@ class foxqlPeer {
     {
         if(this.avaliableUseKeys.includes(nameSpace)) this[nameSpace] = {...this[nameSpace], ...values};
     }
+
+    async waitPeer()
+    {
+        return new Promise((resolve)=>{
+            let connectionLength = Object.keys(this.connections).length;
+            if(connectionLength > 0){
+                resolve(true);
+                return;
+            }
+            let timer = setInterval(()=>{
+                if(Object.keys(this.connections).length > 0) {
+                    resolve(true)
+                    clearInterval(timer)
+                }
+            }, 50);
+        }); 
+    }
     
-    broadcast(data)
+    async broadcast(data)
     {
         const validate = dataModel(data);
         if(validate.error) {return validate}
-        
+
+        await this.waitPeer();
 
         data.data._by = this.myPeerId;
 
