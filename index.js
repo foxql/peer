@@ -208,6 +208,16 @@ class foxqlPeer {
         );
     }
 
+    stableConnectionCount()
+    {
+        const connections = Object.values(this.connections);
+        return [].concat(...connections).filter(connection =>{
+            if(connection.dataChannel.readyState == 'open') {
+                return true;
+            }
+        }).length
+    }
+
 }
 
 

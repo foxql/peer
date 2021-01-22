@@ -35,6 +35,8 @@ class Peer{
 
     async send(message)
     {
+        if(this.dataChannel.readyState != 'open') return;
+        
         this.dataChannel.send(message);
     }
 
