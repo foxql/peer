@@ -57,6 +57,10 @@ class foxqlPeer {
 
             this.socket.on('eventSimulation', async (eventObject)=>{
                 const targetMethod = this.peerEvents[eventObject.listener] || false;
+
+                if(!targetMethod) return;
+                
+
                 const targettingPeer = eventObject.data._by;
 
                 const process = await targetMethod[0](eventObject.data);
