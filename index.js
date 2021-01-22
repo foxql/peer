@@ -116,13 +116,12 @@ class foxqlPeer {
     async waitPeer()
     {
         return new Promise((resolve)=>{
-            let connectionLength = Object.keys(this.connections).length;
-            if(connectionLength > 0){
+            if(this.stableConnectionCount() > 0){
                 resolve(true);
                 return;
             }
             let timer = setInterval(()=>{
-                if(Object.keys(this.connections).length > 0) {
+                if(this.stableConnectionCount() > 0) {
                     resolve(true)
                     clearInterval(timer)
                 }
