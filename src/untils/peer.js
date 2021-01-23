@@ -45,13 +45,24 @@ class Peer{
         const offer = await this.peer.createOffer();
         await this.peer.setLocalDescription(offer);
         this.peer.onicecandidate = ({candidate}) => {
-            if (candidate) return;
+            if (candidate) {
+                this.emitCandidate(this.peerId, candidate)
+                return;
+            }
 
             this.socket.emit('offer', {
                 to : this.peerId,
                 offer : this.peer.localDescription.sdp
             });
         };
+    }
+
+    emitCandidate(peerId, candidate)
+    {
+        this.socket.emit('candidate', {
+            candidate : candidate,
+            to : peerId
+        });
     }
 
     async createAnswer(offerSdp)
@@ -61,7 +72,10 @@ class Peer{
         const answer = await this.peer.createAnswer()
         await this.peer.setLocalDescription(answer);
         this.peer.onicecandidate = ({candidate}) => {
-            if (candidate) return;
+            if (candidate) {
+                this.emitCandidate(this.peerId, candidate)
+                return;
+            }
             this.socket.emit('answer', {
                 to : this.peerId,
                 offer : this.peer.localDescription.sdp

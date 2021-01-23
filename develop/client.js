@@ -4,9 +4,9 @@ import peer from '../index.js';
 const network = new peer();
 
 network.use('socketOptions', {
-    host : 'foxql-signal.herokuapp.com',
-    port : null,
-    protocol : 'https'
+    host : '127.0.0.1',
+    port : 1923,
+    protocol : 'http'
 });
 
 
