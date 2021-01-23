@@ -22,8 +22,49 @@ class foxqlPeer {
         this.myPeerId = null;
     
         this.iceServers = [
-            {'urls': 'stun:stun.stunprotocol.org:3478'},
-            {'urls': 'stun:stun.l.google.com:19302'}
+            {
+                urls: ["turn:173.194.72.127:19305?transport=udp",
+                "turn:[2404:6800:4008:C01::7F]:19305?transport=udp",
+                "turn:173.194.72.127:443?transport=tcp",
+                "turn:[2404:6800:4008:C01::7F]:443?transport=tcp"
+                ],
+                username:"CKjCuLwFEgahxNRjuTAYzc/s6OMT",
+                credential:"u1SQDR/SQsPQIxXNWQT7czc/G4c="
+            },
+            {url:'stun:stun01.sipphone.com'},
+            {url:'stun:stun.ekiga.net'},
+            {url:'stun:stun.fwdnet.net'},
+            {url:'stun:stun.ideasip.com'},
+            {url:'stun:stun.iptel.org'},
+            {url:'stun:stun.rixtelecom.se'},
+            {url:'stun:stun.schlund.de'},
+            {url:'stun:stun.l.google.com:19302'},
+            {url:'stun:stun1.l.google.com:19302'},
+            {url:'stun:stun2.l.google.com:19302'},
+            {url:'stun:stun3.l.google.com:19302'},
+            {url:'stun:stun4.l.google.com:19302'},
+            {url:'stun:stunserver.org'},
+            {url:'stun:stun.softjoys.com'},
+            {url:'stun:stun.voiparound.com'},
+            {url:'stun:stun.voipbuster.com'},
+            {url:'stun:stun.voipstunt.com'},
+            {url:'stun:stun.voxgratia.org'},
+            {url:'stun:stun.xten.com'},
+            {
+                url: 'turn:numb.viagenie.ca',
+                credential: 'muazkh',
+                username: 'webrtc@live.com'
+            },
+            {
+                url: 'turn:192.158.29.39:3478?transport=udp',
+                credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+                username: '28224511:1379330808'
+            },
+            {
+                url: 'turn:192.158.29.39:3478?transport=tcp',
+                credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+                username: '28224511:1379330808'
+            }
         ];
     
         this.avaliableUseKeys = [
