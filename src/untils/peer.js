@@ -12,7 +12,7 @@ class Peer{
     make(emitter)
     {
         this.peer = new RTCPeerConnection(this.options)
-        this.dataChannel = this.peer.createDataChannel(this.channelName, {negotiated: true, id: 0});
+        this.dataChannel = this.peer.createDataChannel(this.channelName);
         this.dataChannel.onopen = this.dataChannelOpenHandler.bind(this);
         if(typeof emitter === 'function'){
             this.dataChannel.onmessage = (e)=>{
@@ -24,7 +24,7 @@ class Peer{
                 emitter(name, data);
             };
         }
-    
+        
         this.peer.oniceconnectionstatechange = e => console.log(this.peer.iceConnectionState);
     }
 
