@@ -11,7 +11,9 @@ class Peer{
 
     make(emitter)
     {
-        this.peer = new RTCPeerConnection(this.options)
+        this.peer = new RTCPeerConnection({
+            iceServers : this.options
+        })
         this.dataChannel = this.peer.createDataChannel(this.channelName);
         this.dataChannel.onopen = this.dataChannelOpenHandler.bind(this);
         if(typeof emitter === 'function'){
