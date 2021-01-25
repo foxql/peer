@@ -26,7 +26,12 @@ class foxqlPeer {
             {url:'stun:stun1.l.google.com:19302'},
             {url:'stun:stun2.l.google.com:19302'},
             {url:'stun:stun3.l.google.com:19302'},
-            {url:'stun:stun4.l.google.com:19302'}
+            {url:'stun:stun4.l.google.com:19302'},
+            {
+                url: 'turn:206.81.16.7:3478',
+                credential: 'foxql',
+                username: 'foxql'
+            }
         ];
     
         this.avaliableUseKeys = [
