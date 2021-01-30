@@ -127,16 +127,23 @@ class foxqlPeer {
 
     async waitPeer()
     {
+        let currentRetryCount = 0;
         return new Promise((resolve)=>{
             if(this.stableConnectionCount() > 0){
                 resolve(true);
                 return;
             }
             let timer = setInterval(()=>{
+                if(currentRetryCount > 23) {
+                    resolve(true)
+                    clearInterval(timer)
+                    return;
+                }
                 if(this.stableConnectionCount() > 0) {
                     resolve(true)
                     clearInterval(timer)
                 }
+                currentRetryCount++;
             }, 50);
         }); 
     }
