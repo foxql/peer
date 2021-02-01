@@ -12,7 +12,8 @@ class Peer{
     make(emitter)
     {
         this.peer = new RTCPeerConnection({
-            iceServers : this.options
+            iceServers : this.options,
+            sdpSemantics: "unified-plan"
         })
         this.dataChannel = this.peer.createDataChannel(this.channelName, {negotiated: true, id: 0});
         this.dataChannel.onopen = this.dataChannelOpenHandler.bind(this);
