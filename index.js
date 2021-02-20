@@ -16,8 +16,9 @@ class foxqlPeer {
             protocol : 'https'
         };
     
-        this.networkStableConnectionSize = 35;
-        this.networkMaxConnectionSize = 70;
+        this.networkMaxConnectionSize = 40;
+        this.socketConnection = false;
+        this.maxSocketConnectionCheckInterval = 30;
         
         this.myPeerId = null;
     
@@ -36,13 +37,9 @@ class foxqlPeer {
         ];
 
         this.simulatedListenerDestroyTime = 1000;
-        this.simulatedListenerAfterDatachannelTimeout = 1200;
 
         this.connections = {};
-        
-    
         this.peerEvents = {};
-
     }
 
     open()
@@ -58,6 +55,7 @@ class foxqlPeer {
 
         this.socket.on('connect', ()=>{
             this.myPeerId = this.socket.id;
+            this.socketConnection = true;
 
             this.socket.on('eventSimulation', async (eventObject)=>{
                 const targetMethod = this.peerEvents[eventObject.listener] || false;
@@ -73,13 +71,9 @@ class foxqlPeer {
                     if(process) {
                         this.simulationIsDone(eventObject);
                     }
-                }else{
-                    await targetMethod[0](eventObject.data)
                 }
             });
-
-
-            //this.socket.emit('call', this.networkStableConnectionSize);
+           // this.socket.emit('call', this.networkStableConnectionSize);
         });
     }
 
@@ -122,38 +116,32 @@ class foxqlPeer {
         if(this.avaliableUseKeys.includes(nameSpace)) this[nameSpace] = {...this[nameSpace], ...values};
     }
 
-    async waitPeer()
+    async waitSocketConnection()
     {
-        let currentRetryCount = 0;
+        let retryCount = 0;
+
         return new Promise((resolve)=>{
-            if(this.stableConnectionCount() > 0){
-                resolve(true);
-                return;
-            }
-            let timer = setInterval(()=>{
-                if(currentRetryCount > 23) {
-                    resolve(true)
-                    clearInterval(timer)
-                    return;
+            let interval = setInterval(()=>{
+                if(retryCount > this.maxSocketConnectionCheckInterval){
+                    resolve(false)
+                    clearInterval(interval)
+                    return false;
                 }
-                if(this.stableConnectionCount() > 0) {
+                if(this.socketConnection) {
                     resolve(true)
-                    clearInterval(timer)
+                    clearInterval(interval)
                 }
-                currentRetryCount++;
-            }, 50);
-        }); 
+            },50);
+        });
     }
-    
+
+
     async broadcast(data)
     {
+        await this.waitSocketConnection();
 
         const validate = dataModel(data);
         if(validate.error) {return validate}
-
-        //await this.waitPeer();
-
-        
 
         data.data._by = this.myPeerId;
 
@@ -163,42 +151,42 @@ class foxqlPeer {
 
         this.socket.emit('eventSimulation', data);
 
-        let peerPool = [];
-        this.socket.on(simulatedPeerListener, (peer)=>{
-            peerPool.push(peer);
+        const dataPackage = JSON.stringify(data);
+
+        this.socket.on(simulatedPeerListener, async (peerId)=>{
+            const connectionList = Object.keys(this.connections);
+
+            if(connectionList.length >= this.networkMaxConnectionSize) {
+                this.closePeer(connectionList.shift())
+                console.log('Fazla bağlantı düşüyor..')
+            }
+
+            const activePeerConnection = this.connections[peerId] || false;
+            if(!activePeerConnection) {
+                const peer = this.newPeer(peerId);
+                peer.createOffer();
+                this.connections[peerId] = peer;
+            }
         })
 
         setTimeout(()=>{
             delete this.socket._callbacks['$'+simulatedPeerListener];
-
-            if(peerPool.length <= 0) return;
-
-            peerPool.forEach(peerId => {
-                if(this.connections[peerId] == undefined) {
-                    const peer = this.newPeer(peerId);
-                    peer.createOffer();
-                    this.connections[peerId] = peer;
-                }
-            });
-
             const currentConnections = this.connections;
-            const dataPackage = JSON.stringify(data);
 
-            setTimeout(()=>{
-                for(let id in currentConnections) {
-                    const peer = currentConnections[id];
-                    const channel = peer.dataChannel;
-                    if(channel == undefined) {
-                        this.connections[id]
-                        continue
-                    }
-                    if(channel.readyState !== 'open') {
-                        delete this.connections[id]
-                        continue;
-                    }
-                    peer.send(dataPackage)
+            for(let id in currentConnections) {
+                const peer = currentConnections[id];
+                const channel = peer.dataChannel;
+                if(channel == undefined) {
+                    this.closePeer(id)
+                    continue
                 }
-            }, this.simulatedListenerAfterDatachannelTimeout);
+                if(channel.readyState !== 'open') {
+                    this.closePeer(id)
+                    continue;
+                }
+                peer.send(dataPackage)
+            }   
+
         }, this.simulatedListenerDestroyTime);
 
     }
@@ -236,6 +224,15 @@ class foxqlPeer {
                 return true;
             }
         }).length
+    }
+
+
+    closePeer(id)
+    {
+        if(this.connections[id] == undefined) {return false;}
+
+        this.connections[id].dataChannel.close();
+        delete this.connections[id];
     }
 
 }
