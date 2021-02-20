@@ -147,7 +147,7 @@ class foxqlPeer {
     
     async broadcast(data)
     {
-        const t1 = new Date();
+
         const validate = dataModel(data);
         if(validate.error) {return validate}
 
