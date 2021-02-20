@@ -16,8 +16,8 @@ class foxqlPeer {
             protocol : 'https'
         };
     
-        this.networkStableConnectionSize = 25;
-        this.networkMaxConnectionSize = 50;
+        this.networkStableConnectionSize = 35;
+        this.networkMaxConnectionSize = 70;
         
         this.myPeerId = null;
     
@@ -78,7 +78,7 @@ class foxqlPeer {
             });
 
 
-            this.socket.emit('call', this.networkStableConnectionSize);
+            //this.socket.emit('call', this.networkStableConnectionSize);
         });
     }
 
@@ -185,9 +185,11 @@ class foxqlPeer {
                     const peer = currentConnections[id];
                     const channel = peer.dataChannel;
                     if(channel == undefined) {
+                        this.connections[id]
                         continue
                     }
                     if(channel.readyState !== 'open') {
+                        delete this.connections[id]
                         continue;
                     }
                     peer.send(dataPackage)

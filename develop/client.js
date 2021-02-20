@@ -3,6 +3,12 @@ import peer from '../index.js';
 
 const network = new peer();
 
+network.use('socketOptions', {
+    host : '127.0.0.1',
+    port : 1923,
+    protocol : 'http'
+});
+
 network.onPeer('question', async (data)=>{
     console.log(data._by, 'Tarafından bir soru alındı.');
 
