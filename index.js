@@ -35,7 +35,7 @@ class foxqlPeer {
             'maxConnections'
         ];
 
-        this.simulatedListenerDestroyTime = 650;
+        this.simulatedListenerDestroyTime = 1400;
         this.simulatedListenerAfterDatachannelTimeout = 1200;
 
         this.connections = {};
@@ -67,13 +67,14 @@ class foxqlPeer {
 
                 const targettingPeer = eventObject.data._by;
 
-                const process = await targetMethod[0](eventObject.data);
-
                 if(this.connections[targettingPeer] == undefined) { // if not connected.
                     eventObject.data._simulate = true;
+                    const process = await targetMethod[0](eventObject.data);
                     if(process) {
                         this.simulationIsDone(eventObject);
                     }
+                }else{
+                    await targetMethod[0](eventObject.data)
                 }
             });
 
