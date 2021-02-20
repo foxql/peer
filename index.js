@@ -35,7 +35,7 @@ class foxqlPeer {
             'maxConnections'
         ];
 
-        this.simulatedListenerDestroyTime = 1400;
+        this.simulatedListenerDestroyTime = 1000;
         this.simulatedListenerAfterDatachannelTimeout = 1200;
 
         this.connections = {};
@@ -147,10 +147,13 @@ class foxqlPeer {
     
     async broadcast(data)
     {
+        const t1 = new Date();
         const validate = dataModel(data);
         if(validate.error) {return validate}
 
-        await this.waitPeer();
+        //await this.waitPeer();
+
+        
 
         data.data._by = this.myPeerId;
 

@@ -1,6 +1,6 @@
 {
   "name": "@foxql/foxql-peer",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "description": "Simple webrtc implemantation for p2p communication",
   "main": "index.js",
   "scripts": {
