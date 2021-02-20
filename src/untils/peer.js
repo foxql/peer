@@ -6,6 +6,8 @@ class Peer{
         this.peerId = id;
         this.socket = socket;
 
+        this.dataChannelQueue = [];
+
         this.make(emitter);
     }
 
@@ -33,7 +35,11 @@ class Peer{
 
     dataChannelOpenHandler()
     {
-        //console.log(`Data channel is ready ${this.peerId}`);
+        console.log(`Data channel is ready ${this.peerId}`);
+        const queue = this.dataChannelQueue;
+        if(queue.length > 0) {
+            queue.forEach(eventPackage => this.send(eventPackage));
+        }
     }
 
     async send(message)

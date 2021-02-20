@@ -3,7 +3,6 @@ import peer from '../index.js';
 
 const network = new peer();
 
-
 network.onPeer('question', async (data)=>{
     console.log(data._by, 'Tarafından bir soru alındı.');
 
