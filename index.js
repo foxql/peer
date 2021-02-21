@@ -24,6 +24,7 @@ class foxqlPeer {
     
         this.iceServers = [
             {url:'stun:stun.l.google.com:19302'},
+            {url:'stun:stun4.l.google.com:19302'},
             {
                 url: 'turn:206.81.16.7:3478',
                 credential: 'foxql',
@@ -36,7 +37,7 @@ class foxqlPeer {
             'maxConnections'
         ];
 
-        this.simulatedListenerDestroyTime = 500;
+        this.simulatedListenerDestroyTime = 750;
 
         this.connections = {};
         this.peerEvents = {};
@@ -138,7 +139,9 @@ class foxqlPeer {
 
     async broadcast(data)
     {
-        await this.waitSocketConnection();
+        if(!this.socketConnection){
+            await this.waitSocketConnection();
+        }
 
         const validate = dataModel(data);
         if(validate.error) {return validate}
@@ -160,7 +163,6 @@ class foxqlPeer {
 
             if(connectionList.length >= this.networkMaxConnectionSize) {
                 this.closePeer(connectionList.shift())
-                console.log('Fazla bağlantı düşüyor..')
             }
 
             const activePeerConnection = this.connections[peerId] || false;
@@ -173,29 +175,31 @@ class foxqlPeer {
             }
         })
 
-        setTimeout(()=>{
-            delete this.socket._callbacks['$'+simulatedPeerListener];
-            const currentConnections = this.connections;
+        return new Promise((resolve)=>{
+            setTimeout(()=>{
+                delete this.socket._callbacks['$'+simulatedPeerListener];
+                const currentConnections = this.connections;
+    
+                for(let id in currentConnections) {
+                    if(simulatedPeerIdList.includes(id)){
+                        continue;
+                    }
+                    const peer = currentConnections[id];
+                    const channel = peer.dataChannel;
+                    if(channel == undefined) {
+                        this.closePeer(id)
+                        continue
+                    }
+                    if(channel.readyState !== 'open') {
+                        this.closePeer(id)
+                        continue;
+                    }
+                    peer.send(dataPackage)
+                }  
 
-            for(let id in currentConnections) {
-                if(simulatedPeerIdList.includes(id)){
-                    continue;
-                }
-                const peer = currentConnections[id];
-                const channel = peer.dataChannel;
-                if(channel == undefined) {
-                    this.closePeer(id)
-                    continue
-                }
-                if(channel.readyState !== 'open') {
-                    this.closePeer(id)
-                    continue;
-                }
-                peer.send(dataPackage)
-            }   
-
-        }, this.simulatedListenerDestroyTime);
-
+                resolve(true)
+            }, this.simulatedListenerDestroyTime);
+        });
     }
 
     send(id, data)
@@ -234,7 +238,7 @@ class foxqlPeer {
     }
 
 
-    closePeer(id)
+    async closePeer(id)
     {
         if(this.connections[id] == undefined) {return false;}
 
