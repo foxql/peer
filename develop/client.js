@@ -29,4 +29,11 @@ network.onPeer('answer', async (data)=>{
 network.open();
 
 
+network.broadcast({
+    listener : 'question',
+    data : {
+        message : 'message content!'
+    }
+});
+
 window.p2p = network;
