@@ -11,7 +11,7 @@ npm i @foxql/foxql-peer
 
 #### Simple usage
 ``` javascript 
-import peer from '../index.js';
+import peer from '@foxql/foxql-peer';
 
 const network = new peer();
 ```
