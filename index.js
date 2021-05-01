@@ -37,7 +37,7 @@ class foxqlPeer {
             'maxConnections'
         ];
 
-        this.simulatedListenerDestroyTime = 750;
+        this.simulatedListenerDestroyTime = 450;
 
         this.connections = {};
         this.peerEvents = {};
@@ -181,18 +181,11 @@ class foxqlPeer {
                 const currentConnections = this.connections;
     
                 for(let id in currentConnections) {
-                    if(simulatedPeerIdList.includes(id)){
-                        continue;
-                    }
                     const peer = currentConnections[id];
                     const channel = peer.dataChannel;
                     if(channel == undefined) {
                         this.closePeer(id)
                         continue
-                    }
-                    if(channel.readyState !== 'open') {
-                        this.closePeer(id)
-                        continue;
                     }
                     peer.send(dataPackage)
                 }  
