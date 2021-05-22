@@ -23,10 +23,10 @@ class foxqlPeer {
         this.myPeerId = null;
     
         this.iceServers = [
-            {url:'stun:stun.l.google.com:19302'},
-            {url:'stun:stun4.l.google.com:19302'},
+            {urls:'stun:stun.l.google.com:19302'},
+            {urls:'stun:stun4.l.google.com:19302'},
             {
-                url: 'turn:206.81.16.7:3478',
+                urls: 'turn:206.81.16.7:3478',
                 credential: 'foxql',
                 username: 'foxql'
             }
