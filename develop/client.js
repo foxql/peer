@@ -3,6 +3,18 @@ import peer from '../index.js';
 
 const network = new peer();
 
+network.use('socketOptions', {
+    host : 'localhost',
+    port : 1923,
+    protocol : 'http'
+});
+
+network.use('peerInformation', {
+    alias : 'FoxQL - Custom Node Name',
+    avatar : 'https://foxql.com/media/logo.png',
+    explanation : 'My node custom object!'
+})
+
 network.onPeer('question', async (data)=>{
     console.log(data._by, 'Tarafından bir soru alındı.');
 
@@ -22,7 +34,7 @@ network.onPeer('question', async (data)=>{
 });
 
 network.onPeer('answer', async (data)=>{
-    console.log(data._by, 'Tarafından bir cevap alındı.');
+    console.log(data, 'Tarafından bir cevap alındı.');
 });
 
 

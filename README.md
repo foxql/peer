@@ -61,4 +61,13 @@ network.send('kumP91ZUJf8FVNOKAACp', {
 })
 ```
 
+#### Set Peer Information
 
+``` javascript
+network.use('peerInformation', {
+    alias : 'FoxQL - Custom Node Name',
+    avatar : 'https://foxql.com/media/logo.png',
+    explanation : 'My node custom object!'
+})
+
+```
