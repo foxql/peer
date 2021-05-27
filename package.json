@@ -27,9 +27,9 @@
     "parcel": "^1.12.4"
   },
   "dependencies": {
-    "socket.io-client": "^2.3.1"
+    "socket.io-client": "^4.1.2"
   },
   "browserslist": [
     "last 1 Chrome versions"
-]
+  ]
 }
