@@ -24,12 +24,7 @@ class foxqlPeer {
     
         this.iceServers = [
             {urls:'stun:stun.l.google.com:19302'},
-            {urls:'stun:stun4.l.google.com:19302'},
-            {
-                urls: 'turn:206.81.16.7:3478',
-                credential: 'foxql',
-                username: 'foxql'
-            }
+            {urls:'stun:stun4.l.google.com:19302'}
         ];
     
         this.avaliableUseKeys = [
