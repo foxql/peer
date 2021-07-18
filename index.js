@@ -10,6 +10,12 @@ class foxqlPeer {
     constructor()
     {
 
+        this.peerInformation = {
+            alias : null,
+            avatar : null,
+            explanation : null
+        };
+
         this.socketOptions = {
             host : 'foxql-signal.herokuapp.com',
             port : null,
@@ -29,10 +35,11 @@ class foxqlPeer {
     
         this.avaliableUseKeys = [
             'socketOptions',
-            'maxConnections'
+            'maxConnections',
+            'peerInformation'
         ];
 
-        this.simulatedListenerDestroyTime = 750;
+        this.simulatedListenerDestroyTime = 450;
 
         this.connections = {};
         this.peerEvents = {};
@@ -45,12 +52,21 @@ class foxqlPeer {
         }else{
             this.socketOptions.port = '';
         }
-        this.socket = io(`${this.socketOptions.protocol}://${this.socketOptions.host}${this.socketOptions.port}`);   
+        this.socket = io(`${this.socketOptions.protocol}://${this.socketOptions.host}${this.socketOptions.port}`, {
+            transports : ['websocket']
+        });   
 
         this.loadEvents();
 
         this.socket.on('connect', ()=>{
-            this.myPeerId = this.socket.id;
+
+            const peerId = this.socket.id;
+
+            if(this.peerInformation.alias === null) {
+                this.peerInformation.alias = peerId;
+            }
+
+            this.myPeerId = peerId
             this.socketConnection = true;
 
             this.socket.on('eventSimulation', async (eventObject)=>{
@@ -142,6 +158,7 @@ class foxqlPeer {
         if(validate.error) {return validate}
 
         data.data._by = this.myPeerId;
+        data.data._peerInformation = this.peerInformation;
 
         const simulatedPeerListener = RandomString();
 
@@ -176,18 +193,11 @@ class foxqlPeer {
                 const currentConnections = this.connections;
     
                 for(let id in currentConnections) {
-                    if(simulatedPeerIdList.includes(id)){
-                        continue;
-                    }
                     const peer = currentConnections[id];
                     const channel = peer.dataChannel;
                     if(channel == undefined) {
                         this.closePeer(id)
                         continue
-                    }
-                    if(channel.readyState !== 'open') {
-                        this.closePeer(id)
-                        continue;
                     }
                     peer.send(dataPackage)
                 }  
@@ -207,6 +217,7 @@ class foxqlPeer {
         if(!connection) return false;
 
         data.data._by = this.myPeerId;
+        data.data._peerInformation = this.peerInformation;
         const dataPackage = JSON.stringify(data);
 
         connection.send(dataPackage);
