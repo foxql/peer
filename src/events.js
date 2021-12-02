@@ -7,4 +7,4 @@ export default [
     offer,
     answer,
     drop
-];
+]

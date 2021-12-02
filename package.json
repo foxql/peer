@@ -27,6 +27,7 @@
     "parcel": "^1.12.4"
   },
   "dependencies": {
+    "crypto-js": "^4.1.1",
     "socket.io-client": "^4.1.2"
   },
   "browserslist": [
