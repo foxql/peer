@@ -21,7 +21,7 @@ class p2pNetwork extends bridge{
         if(host === undefined) return false
 
         const key = sha256(host)
-        if(this.existSignallingServer(key)) { // signalling Server not found
+        if(this.existSignallingServer(key)) { // signalling Server is found
             return false 
         }
 
