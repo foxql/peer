@@ -7,6 +7,9 @@ class p2pNetwork extends bridge{
     {
         super(bridgeServer)
         this.signallingServers = {}
+
+        this.events = {}
+
     }
 
     start()
@@ -33,6 +36,14 @@ class p2pNetwork extends bridge{
     {
         return this.signallingServers[key] !== undefined ? true : false
     }
+
+    loadEvents(events)
+    {
+        events.forEach( ({listener, listenerName}) => {
+            this.events[listenerName] = listener
+        });
+    }
+
 }
 
 

@@ -1,4 +1,5 @@
 import network from '../index.js';
+import events from './events'
 
 const p2p = new network({
     bridgeServer: {
@@ -6,6 +7,10 @@ const p2p = new network({
     }
 });
 
+p2p.loadEvents(events)
+
 p2p.start()
+
+
 
 window.p2p = p2p;
