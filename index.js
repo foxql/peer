@@ -7,9 +7,7 @@ class p2pNetwork extends bridge{
     {
         super(bridgeServer)
         this.signallingServers = {}
-
         this.events = {}
-
     }
 
     start()

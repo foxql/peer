@@ -17,6 +17,7 @@ export default class {
         })
 
         socket.on('find-available-server', callback.bind(this))
+        this.bridgeSocket = socket
     }
 
 
