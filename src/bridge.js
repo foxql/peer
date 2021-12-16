@@ -20,6 +20,10 @@ export default class {
         this.bridgeSocket = socket
     }
 
+    transportMessage(data)
+    {
+        this.bridgeSocket.emit('transport', data)
+    }
 
 
 }
