@@ -1,4 +1,4 @@
-import * as helloWorld from './helloWorldEvent'
+import * as helloWorld from './exampleEvent'
 
 export default [
     helloWorld
