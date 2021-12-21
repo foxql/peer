@@ -17,7 +17,10 @@ p2p.start()
 setTimeout(()=> {
     p2p.pow({
         transportPackage: {
-            p2pChannelName: 'give-me-your-name'
+            p2pChannelName: 'give-me-your-name',
+            query: {
+                password: 'exampleValue'
+            }
         },
         livingTime: 1000
     })
