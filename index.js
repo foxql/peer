@@ -4,6 +4,7 @@ import signallingServer from './src/signalling'
 import sha256 from 'crypto-js/sha256'
 import { nodeId } from './src/utils'
 import { v4 as uuidv4 } from 'uuid'
+
 class p2pNetwork extends bridge{
     constructor({bridgeServer})
     {
@@ -12,6 +13,7 @@ class p2pNetwork extends bridge{
         this.events = {}
         this.status = 'not-ready'
         this.nodeId = nodeId()
+        this.appName = window.location.hostname
     }
 
     start()
@@ -63,8 +65,6 @@ class p2pNetwork extends bridge{
             nodeId: this.nodeId,
             answerPool: tempListenerName
         })
-
-    
     }
 
 
