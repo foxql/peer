@@ -14,6 +14,8 @@ class p2pNetwork extends bridge{
         this.status = 'not-ready'
         this.nodeId = nodeId()
         this.appName = window.location.hostname
+
+        this.nodes = {}
     }
 
     start()
@@ -32,9 +34,11 @@ class p2pNetwork extends bridge{
             return false 
         }
 
-        this.signallingServers[key] = new signallingServer(host, ()=> {
+        const signallingServerInstance = new signallingServer(host, ()=> {
             this.status = 'ready'
-        })
+        }, this.eventSimulation)
+
+        this.signallingServers[key] = signallingServerInstance
 
     }
 
@@ -65,6 +69,11 @@ class p2pNetwork extends bridge{
             nodeId: this.nodeId,
             answerPool: tempListenerName
         })
+    }
+
+    eventSimulation(eventObject)
+    {
+        console.log(eventObject)
     }
 
 

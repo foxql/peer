@@ -1,12 +1,13 @@
 import io from 'socket.io-client'
 export default class {
 
-    constructor(host, connectionCallback)
+    constructor(host, connectionCallback, eventSimulationListener)
     {
         this.host = host
         this.signallingStatus = 'not-ready'
         this.signallingSocket = null
         this.connectionCallback = connectionCallback
+        this.eventSimulationListener = eventSimulationListener
         this.connectSignallingServer()
     }
 
@@ -18,6 +19,7 @@ export default class {
             this.connectionCallback(this.host)
         })
         socket.on('disconnect', this.disconnectListener)
+        socket.on('eventSimulation', this.eventSimulationListener)
         this.signallingSocket = socket
     }
 
