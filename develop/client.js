@@ -22,7 +22,7 @@ setTimeout(()=> {
                 password: 'exampleValue'
             }
         },
-        livingTime: 1000
+        livingTime: 1500
     })
 }, 1000)
 
