@@ -36,7 +36,7 @@ class p2pNetwork extends bridge{
 
         const signallingServerInstance = new signallingServer(host, ()=> {
             this.status = 'ready'
-        }, this.eventSimulation)
+        }, this.eventSimulation.bind(this))
 
         this.signallingServers[key] = signallingServerInstance
 
@@ -67,13 +67,49 @@ class p2pNetwork extends bridge{
         this.transportMessage({
             ...transportPackage,
             nodeId: this.nodeId,
-            answerPool: tempListenerName
+            answerPool: tempListenerName,
+            livingTime: livingTime
         })
     }
 
-    eventSimulation(eventObject)
+    async eventSimulation(eventObject)
     {
-        console.log(eventObject)
+        const {eventPackage} = eventObject
+
+        const {nodeId, p2pChannelName} = eventPackage
+        
+        if(nodeId === this.nodeId) return false
+
+        if(this.findNode(nodeId)) return false // node currently connected.
+
+        const listener = this.findNodeEvent(p2pChannelName) // find p2p event listener
+
+        if(!listener) return false
+
+        const simulateProcess = await listener(eventPackage, true)
+
+        if(!simulateProcess) return false
+
+        await this.sendSimulationDoneSignall(eventObject)
+    }
+
+    async sendSimulationDoneSignall(eventObject)
+    {
+        const {bridgePoolingListener} = eventObject
+        this.bridgeSocket.emit('transport-pooling', {
+            bridgePoolingListener: bridgePoolingListener,
+            nodeId: this.nodeId
+        })
+    }
+
+    findNodeEvent(listenerName)
+    {
+        return this.events[listenerName] || false
+    }
+
+    findNode(nodeId)
+    {
+        return this.nodes[nodeId] ? true : false
     }
 
 
