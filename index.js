@@ -14,6 +14,7 @@ class p2pNetwork extends bridge{
         this.status = 'not-ready'
         this.nodeId = nodeId()
         this.appName = window.location.hostname
+        this.nodeAddress = null
 
         this.nodes = {}
     }
@@ -35,6 +36,9 @@ class p2pNetwork extends bridge{
         }
 
         const signallingServerInstance = new signallingServer(host, ()=> {
+            if(this.status === 'not-ready') { // if first signalling server connection
+                this.generateNodeAddress(host)
+            }
             this.status = 'ready'
         }, this.eventSimulation.bind(this))
 
@@ -59,15 +63,17 @@ class p2pNetwork extends bridge{
         if(this.status !== 'ready') return {warning: this.status}
 
         const tempListenerName = uuidv4()
+
+        const candidates = []
         
-        this.bridgeSocket.on(tempListenerName, data => { // listen transport event result
-            // todo p2p connection starting...
+        this.bridgeSocket.on(tempListenerName, nodeId => { // listen transport event result
+           
         })
 
         this.transportMessage({
             ...transportPackage,
             nodeId: this.nodeId,
-            answerPool: tempListenerName,
+            temporaryListener: tempListenerName,
             livingTime: livingTime
         })
     }
@@ -110,6 +116,12 @@ class p2pNetwork extends bridge{
     findNode(nodeId)
     {
         return this.nodes[nodeId] ? true : false
+    }
+
+    generateNodeAddress(signallingHostAddress)
+    {
+        const {protocol, hostname, port = 80} = new URL(signallingHostAddress)
+        this.nodeAddress = `${this.nodeId}&${protocol.slice(0, -1)}&${hostname}&${port}`
     }
 
 
