@@ -6,7 +6,7 @@ import { nodeId, candidates, sigStore} from './src/utils'
 import { v4 as uuidv4 } from 'uuid'
 
 class p2pNetwork extends bridge{
-    constructor({bridgeServer, maxNodeCount})
+    constructor({bridgeServer, maxNodeCount, maxCandidateCallTime})
     {
         super(bridgeServer)
         this.signallingServers = {}
@@ -16,6 +16,7 @@ class p2pNetwork extends bridge{
         this.appName = window.location.hostname
         this.nodeAddress = null
         this.maxNodeCount = maxNodeCount
+        this.maxCandidateCallTime = maxCandidateCallTime || 1000 // 1000 = 1 second
 
         this.sigStore = new sigStore(maxNodeCount)
 
@@ -106,9 +107,12 @@ class p2pNetwork extends bridge{
     async sendSimulationDoneSignall(eventObject)
     {
         const {bridgePoolingListener} = eventObject
+
+        const candidateConnectionSignature = this.sigStore.generate(this.maxCandidateCallTime)
         this.bridgeSocket.emit('transport-pooling', {
             bridgePoolingListener: bridgePoolingListener,
-            nodeAddress: this.nodeAddress
+            nodeAddress: this.nodeAddress,
+            candidateSignature: candidateConnectionSignature
         })
     }
 
