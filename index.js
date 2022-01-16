@@ -66,15 +66,16 @@ class p2pNetwork extends bridge{
 
         const candidates = []
         
-        this.bridgeSocket.on(tempListenerName, nodeId => { // listen transport event result
-           
+        this.bridgeSocket.on(tempListenerName, nodeAddress => { // listen transport event result
+           console.log(nodeAddress)
         })
 
         this.transportMessage({
             ...transportPackage,
             nodeId: this.nodeId,
             temporaryListener: tempListenerName,
-            livingTime: livingTime
+            livingTime: livingTime,
+            nodeAddress: this.nodeAddress
         })
     }
 
@@ -104,7 +105,7 @@ class p2pNetwork extends bridge{
         const {bridgePoolingListener} = eventObject
         this.bridgeSocket.emit('transport-pooling', {
             bridgePoolingListener: bridgePoolingListener,
-            nodeId: this.nodeId
+            nodeAddress: this.nodeAddress
         })
     }
 
