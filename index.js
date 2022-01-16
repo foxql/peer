@@ -4,6 +4,7 @@ import signallingServer from './src/signalling'
 import sha256 from 'crypto-js/sha256'
 import { nodeId } from './src/utils'
 import { v4 as uuidv4 } from 'uuid'
+import candidates from './src/utils/candidates'
 
 class p2pNetwork extends bridge{
     constructor({bridgeServer})
@@ -64,10 +65,11 @@ class p2pNetwork extends bridge{
 
         const tempListenerName = uuidv4()
 
-        const candidates = []
+        const candidatesPool = new candidates()
         
         this.bridgeSocket.on(tempListenerName, nodeAddress => { // listen transport event result
-           console.log(nodeAddress)
+            candidatesPool.push(nodeAddress)
+            console.log(candidatesPool)
         })
 
         this.transportMessage({
