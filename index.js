@@ -17,6 +17,7 @@ class p2pNetwork extends bridge{
         this.nodeAddress = null
         this.maxNodeCount = maxNodeCount
         this.maxCandidateCallTime = maxCandidateCallTime || 1000 // 1000 = 1 second
+        this.constantSignallingServer = null
 
         this.sigStore = new sigStore(maxNodeCount)
 
@@ -34,7 +35,7 @@ class p2pNetwork extends bridge{
     {
         if(host === undefined) return false
 
-        const key = sha256(host)
+        const key = sha256(host).toString()
         if(this.existSignallingServer(key)) { // signalling Server is found
             return false 
         }
@@ -42,6 +43,7 @@ class p2pNetwork extends bridge{
         const signallingServerInstance = new signallingServer(host, ()=> {
             if(this.status === 'not-ready') { // if first signalling server connection
                 this.generateNodeAddress(host)
+                this.constantSignallingServer = key
             }
             this.status = 'ready'
         }, this.eventSimulation.bind(this))
@@ -67,11 +69,14 @@ class p2pNetwork extends bridge{
         if(this.status !== 'ready') return {warning: this.status}
 
         const tempListenerName = uuidv4()
+        const acceptedNodes = {}
 
-        const candidatesPool = new candidates(this.maxNodeCount)
+        const candidatesPool = new candidates(this.maxNodeCount, (node)=> {
+            console.log(node)
+        })
         
-        this.bridgeSocket.on(tempListenerName, nodeAddress => { // listen transport event result
-            candidatesPool.push(nodeAddress)
+        this.bridgeSocket.on(tempListenerName, ({nodeAddress, candidateSignature}) => { // listen transport event result
+            candidatesPool.push(nodeAddress, candidateSignature)
         })
 
         this.transportMessage({
