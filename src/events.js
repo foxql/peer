@@ -1,10 +1,6 @@
-import call from './events/call.js'
-import offer from './events/offer.js'
-import answer from './events/answer.js';
-import drop from './events/drop.js';
+import * as offer from './events/offer'
+import * as candidate from './events/candidate'
 export default [
-    call,
     offer,
-    answer,
-    drop
+    candidate
 ]
