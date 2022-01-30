@@ -2,8 +2,9 @@ import 'regenerator-runtime/runtime'
 import bridge from './src/bridge'
 import signallingServer from './src/signalling'
 import sha256 from 'crypto-js/sha256'
-import { nodeId, candidates, sigStore} from './src/utils'
+import { nodeId, node, sigStore} from './src/utils'
 import { v4 as uuidv4 } from 'uuid'
+import constantEvents from './src/events'
 
 class p2pNetwork extends bridge{
     constructor({bridgeServer, maxNodeCount, maxCandidateCallTime})
@@ -16,12 +17,18 @@ class p2pNetwork extends bridge{
         this.appName = window.location.hostname
         this.nodeAddress = null
         this.maxNodeCount = maxNodeCount
-        this.maxCandidateCallTime = maxCandidateCallTime || 1000 // 1000 = 1 second
+        this.maxCandidateCallTime = maxCandidateCallTime || 1500 // 1500 = 1.5 second
         this.constantSignallingServer = null
+
+        this.iceServers = [
+            {urls:'stun:stun.l.google.com:19302'},
+            {urls:'stun:stun4.l.google.com:19302'}
+        ];
 
         this.sigStore = new sigStore(maxNodeCount)
 
         this.nodes = {}
+        
     }
 
     start()
@@ -29,27 +36,31 @@ class p2pNetwork extends bridge{
         this.connectBridge(
             this.listenSignallingServer
         )
+
+        this.loadEvents(constantEvents)
     }
 
-    listenSignallingServer({host})
+    listenSignallingServer({host}, simulationListener = true)
     {
         if(host === undefined) return false
 
         const key = sha256(host).toString()
         if(this.existSignallingServer(key)) { // signalling Server is found
-            return false 
+            return key
         }
-
         const signallingServerInstance = new signallingServer(host, ()=> {
             if(this.status === 'not-ready') { // if first signalling server connection
                 this.generateNodeAddress(host)
                 this.constantSignallingServer = key
             }
             this.status = 'ready'
-        }, this.eventSimulation.bind(this))
+        }, simulationListener ? this.eventSimulation.bind(this) : null)
+
+        signallingServerInstance.loadEvents(constantEvents)
 
         this.signallingServers[key] = signallingServerInstance
 
+        return key
     }
 
     existSignallingServer(key)
@@ -69,14 +80,11 @@ class p2pNetwork extends bridge{
         if(this.status !== 'ready') return {warning: this.status}
 
         const tempListenerName = uuidv4()
-        const acceptedNodes = {}
-
-        const candidatesPool = new candidates(this.maxNodeCount, (node)=> {
-            console.log(node)
-        })
         
         this.bridgeSocket.on(tempListenerName, ({nodeAddress, candidateSignature}) => { // listen transport event result
-            candidatesPool.push(nodeAddress, candidateSignature)
+            const {nodeId, signallingServerAddress} = this.parseNodeAddress(nodeAddress)
+            const signallHash = this.listenSignallingServer({host: signallingServerAddress}, false)
+            const candidateNode = this.createNode(signallHash, nodeId, candidateSignature)
         })
 
         this.transportMessage({
@@ -112,7 +120,6 @@ class p2pNetwork extends bridge{
     async sendSimulationDoneSignall(eventObject)
     {
         const {bridgePoolingListener} = eventObject
-
         const candidateConnectionSignature = this.sigStore.generate(this.maxCandidateCallTime)
         this.bridgeSocket.emit('transport-pooling', {
             bridgePoolingListener: bridgePoolingListener,
@@ -137,7 +144,42 @@ class p2pNetwork extends bridge{
         this.nodeAddress = `${this.nodeId}&${protocol.slice(0, -1)}&${hostname}&${port}`
     }
 
+    parseNodeAddress(nodeAddress)
+    {
+        const [nodeId, protocol, host, port] = nodeAddress.split('&')
+        
+        const signallingServerAddress = `${protocol}://${host}:${port}`
 
+        return {
+            nodeId,
+            signallingServerAddress
+        }
+
+    }
+
+    emitNode(name, data)
+    {
+        if(this.events[name] == undefined) return false;
+
+        const callbackMethod = (callback) => {
+            callback(data);
+        };
+
+        this.events[name].forEach(callbackMethod);
+    }
+
+    createNode(signallHash, nodeId, candidateSignature)
+    {
+        const candidateNode = new node(
+            this.iceServers, 
+            this.signallingServers[signallHash],
+            this.emitNode.bind(this)
+        )
+
+        candidateNode.create(nodeId, candidateSignature)
+
+        return candidateNode
+    }
 
 }
 
