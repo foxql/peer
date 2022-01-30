@@ -10,7 +10,7 @@ export default class {
 
     connectBridge(callback)
     {
-        const socket =  io(this.host)
+        const socket =  io(this.host, {transports : ['websocket']})
         socket.on('connect', ()=> {
             this.bridgeStatus = 'connected'
             socket.emit('find-available-server', true)
