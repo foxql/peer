@@ -13,15 +13,27 @@ export default class {
 
     connectSignallingServer()
     {
-        const socket = io(this.host)
+        const socket = io(this.host, {transports : ['websocket']})
         socket.on('connect', ()=> {
             this.signallingStatus = 'connected'
             this.connectionCallback(this.host)
         })
         socket.on('disconnect', this.disconnectListener)
-        socket.on('eventSimulation', this.eventSimulationListener)
+
+        if(typeof this.eventSimulationListener === 'function') {
+            socket.on('eventSimulation', this.eventSimulationListener)
+        }
+        
+        
         this.signallingSocket = socket
     }
+
+    loadEvents(eventList)
+    {
+        eventList.forEach( ({listener, listenerName}) => {
+            this.signallingSocket.on(listenerName, listener)
+        });
+    }   
 
     disconnectListener()
     {
