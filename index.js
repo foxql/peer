@@ -17,7 +17,7 @@ class p2pNetwork extends bridge{
         this.appName = window.location.hostname
         this.nodeAddress = null
         this.maxNodeCount = maxNodeCount
-        this.maxCandidateCallTime = maxCandidateCallTime || 1500 // 1500 = 1.5 second
+        this.maxCandidateCallTime = maxCandidateCallTime || 900 // 900 = 0.9 second
         this.constantSignallingServer = null
 
         this.iceServers = [
@@ -52,15 +52,25 @@ class p2pNetwork extends bridge{
             if(this.status === 'not-ready') { // if first signalling server connection
                 this.generateNodeAddress(host)
                 this.constantSignallingServer = key
+                this.upgradeConnection(key)
             }
             this.status = 'ready'
         }, simulationListener ? this.eventSimulation.bind(this) : null)
 
-        signallingServerInstance.loadEvents(constantEvents)
+        const self = this
+
+        signallingServerInstance.loadEvents(constantEvents, self)
 
         this.signallingServers[key] = signallingServerInstance
 
         return key
+    }
+
+    upgradeConnection(key)
+    {
+        if(this.constantSignallingServer == key) {
+            this.signallingServers[key].signallingSocket.emit('upgrade', this.nodeId)
+        }
     }
 
     existSignallingServer(key)
@@ -114,13 +124,13 @@ class p2pNetwork extends bridge{
 
         if(!simulateProcess) return false
 
-        await this.sendSimulationDoneSignall(eventObject)
+        await this.sendSimulationDoneSignall(p2pChannelName, eventObject)
     }
 
-    async sendSimulationDoneSignall(eventObject)
+    async sendSimulationDoneSignall(p2pChannelName, eventObject)
     {
         const {bridgePoolingListener} = eventObject
-        const candidateConnectionSignature = this.sigStore.generate(this.maxCandidateCallTime)
+        const candidateConnectionSignature = this.sigStore.generate(p2pChannelName, this.maxCandidateCallTime)
         this.bridgeSocket.emit('transport-pooling', {
             bridgePoolingListener: bridgePoolingListener,
             nodeAddress: this.nodeAddress,
