@@ -8,12 +8,14 @@ export default class {
         this.signatures = {}
     }
 
-    generate(destroyTime)
+    generate(eventName, destroyTime)
     {
         const key = uuidv4()
-        this.signatures[key] = 0
+        this.signatures[key] = eventName
 
-        setTimeout(()=> this.dropSignature(key), destroyTime)
+        setTimeout(()=> {
+            this.dropSignature(key)
+        }, destroyTime)
         return key
     }
 
