@@ -13,16 +13,17 @@ p2p.loadEvents(events)
 
 p2p.start()
 
-setTimeout(()=> {
+window.testPOW = ()=> {
     p2p.pow({
         transportPackage: {
             p2pChannelName: 'give-me-your-name',
-            query: {
-                password: 'exampleValue'
-            }
+            queryPackage: {
+                exampleKey: 'what u need'
+            }, 
+            stickyNode: true
         },
         livingTime: 1500
     })
-}, 1000)
+}
 
 window.p2p = p2p;
