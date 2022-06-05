@@ -13,8 +13,8 @@ p2p.loadEvents(events)
 
 p2p.start()
 
-window.testPOW = ()=> {
-    p2p.pow({
+window.testPOW = async ()=> {
+    const aa = await p2p.pow({
         transportPackage: {
             p2pChannelName: 'give-me-your-name',
             queryPackage: {
@@ -24,6 +24,7 @@ window.testPOW = ()=> {
         },
         livingTime: 1500
     })
+    console.log(aa)
 }
 
 window.p2p = p2p;

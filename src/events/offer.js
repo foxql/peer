@@ -8,8 +8,4 @@ export async function listener(data, simulate = false)
     if(!access) return
     const offerNode = this.createNode(this.constantSignallingServer, from)
     offerNode.createAnswer(signature, sdp)
-    
-   /* const offerPeer = network.newPeer(payload.from);
-    offerPeer.createAnswer(payload.sdp);
-    network.connections[payload.from] = offerPeer;*/
 }

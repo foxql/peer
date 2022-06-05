@@ -37,7 +37,7 @@ class node {
 
     handleDataChannelMessage(e)
     {
-        console.log(e, 'channel-message')
+        //console.log(e, 'channel-message')
     }   
 
     send(message)

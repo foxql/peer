@@ -12,7 +12,6 @@ export default class {
     {
         const key = uuidv4()
         this.signatures[key] = eventName
-
         setTimeout(()=> {
             this.dropSignature(key)
         }, destroyTime)

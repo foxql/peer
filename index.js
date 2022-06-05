@@ -108,7 +108,6 @@ class p2pNetwork extends bridge{
     async eventSimulation(eventObject)
     {
         const {eventPackage} = eventObject
-
         const {nodeId, p2pChannelName} = eventPackage
         
         if(nodeId === this.nodeId) return false
