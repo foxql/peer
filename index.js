@@ -52,8 +52,8 @@ class p2pNetwork extends bridge{
             if(this.status === 'not-ready') { // if first signalling server connection
                 this.generateNodeAddress(host)
                 this.constantSignallingServer = key
-                this.upgradeConnection(key)
             }
+            this.upgradeConnection(key)
             this.status = 'ready'
         }, simulationListener ? this.eventSimulation.bind(this) : null)
 
@@ -68,9 +68,7 @@ class p2pNetwork extends bridge{
 
     upgradeConnection(key)
     {
-        if(this.constantSignallingServer == key) {
-            this.signallingServers[key].signallingSocket.emit('upgrade', this.nodeId)
-        }
+        this.signallingServers[key].signallingSocket.emit('upgrade', this.nodeId)
     }
 
     existSignallingServer(key)
@@ -94,7 +92,8 @@ class p2pNetwork extends bridge{
         this.bridgeSocket.on(tempListenerName, ({nodeAddress, candidateSignature}) => { // listen transport event result
             const {nodeId, signallingServerAddress} = this.parseNodeAddress(nodeAddress)
             const signallHash = this.listenSignallingServer({host: signallingServerAddress}, false)
-            const candidateNode = this.createNode(signallHash, nodeId, candidateSignature)
+            const targetNode = this.createNode(signallHash, nodeId)
+            targetNode.createOffer(candidateSignature, signallHash)
         })
 
         this.transportMessage({
@@ -178,7 +177,7 @@ class p2pNetwork extends bridge{
         this.events[name].forEach(callbackMethod);
     }
 
-    createNode(signallHash, nodeId, candidateSignature)
+    createNode(signallHash, nodeId)
     {
         const candidateNode = new node(
             this.iceServers, 
@@ -186,7 +185,9 @@ class p2pNetwork extends bridge{
             this.emitNode.bind(this)
         )
 
-        candidateNode.create(nodeId, candidateSignature)
+        candidateNode.create(nodeId)
+
+        this.nodes[nodeId] = candidateNode
 
         return candidateNode
     }

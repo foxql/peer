@@ -1,22 +1,10 @@
-const name = 'candidate';
+export const listenerName = 'candidate';
 
-async function listener (network, payload)
+export async function listener (data, simulate = false)
 {
-    const to = payload.to;
+    const {to, candidate, signature} = data
 
-    const exist = network.peers.existConnection(to);
-    if(!exist) {return false}
+    console.log('candidate sinyali')
 
-    const targettedPeer = network.peers.findConnectionById(to);
-    if(!targettedPeer) {return false}
-
-    targettedPeer.addIceCandidate(
-        new RTCIceCandidate(payload.candidate)
-    );
-
+    return false
 }
-
-export default {
-    name : name,
-    listener : listener
-};

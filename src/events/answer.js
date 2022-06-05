@@ -1,14 +1,6 @@
-const name = 'answer';
+export const listenerName = 'answer'
 
-async function listener (network, payload)
+export async function listener (data, simulated = false)
 {
-    const targetPeer = network.connections[payload.from];
-    if(targetPeer){
-        targetPeer.madeAnswer(payload.sdp);
-    }
+    console.log('Cevap geldi.')
 }
-
-export default {
-    name : name,
-    listener : listener
-};

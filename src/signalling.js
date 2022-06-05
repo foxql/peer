@@ -28,10 +28,10 @@ export default class {
         this.signallingSocket = socket
     }
 
-    loadEvents(eventList)
+    loadEvents(eventList, parent)
     {
         eventList.forEach( ({listener, listenerName}) => {
-            this.signallingSocket.on(listenerName, listener)
+            this.signallingSocket.on(listenerName, listener.bind(parent))
         });
     }   
 

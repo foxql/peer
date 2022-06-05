@@ -13,7 +13,7 @@ class node {
         this.waitingMessage = false
     }
 
-    async create(id, signature)
+    async create(id)
     {   
         this.id = id
         const p2p = new RTCPeerConnection({
@@ -28,8 +28,6 @@ class node {
         p2p.oniceconnectionstatechange = e => console.log(p2p.iceConnectionState)
     
         this.p2p = p2p
-
-        await this.createOffer(signature)
     }
 
     handleDataChannelOpen()
@@ -55,10 +53,7 @@ class node {
         await this.p2p.setLocalDescription(offer)
         this.p2p.onicecandidate = ({candidate}) => {
             if (candidate) {
-                this.socket.emit('candidate', {
-                    candidate : candidate,
-                    to : this.id
-                })
+                this.sendCandidateSignall(signature, candidate)
                 return;
             }
             this.socket.emit('offer', {
@@ -66,6 +61,33 @@ class node {
                 offer : this.p2p.localDescription.sdp,
                 signature: signature
             });
+        }
+    }
+
+    async sendCandidateSignall(signature, candidate)
+    {
+        this.socket.emit('candidate', {
+            candidate : candidate,
+            to : this.id,
+            signature: signature
+        });
+    }
+
+    async createAnswer(signature, offerSdp)
+    {
+        await this.p2p.setRemoteDescription({type: "offer", sdp: offerSdp});
+        const answer = await this.p2p.createAnswer()
+        await this.p2p.setLocalDescription(answer);
+        this.p2p.onicecandidate = ({candidate}) => {
+            if (candidate) {
+                this.sendCandidateSignall(signature, candidate)
+                return
+            }
+            this.socket.emit('answer', {
+                to : this.id,
+                answer : this.p2p.localDescription.sdp,
+                signature: signature
+            })
         }
     }
 }
