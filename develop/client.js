@@ -9,6 +9,11 @@ const p2p = new network({
     maxCandidateCallTime: 2000 // ms
 });
 
+p2p.setMetaData({
+    name: 'test-node',
+    description: 'test-desc'
+})
+
 p2p.loadEvents(events)
 
 p2p.start()
