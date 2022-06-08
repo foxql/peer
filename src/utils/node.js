@@ -2,15 +2,15 @@ const defaultDataChannelName = 'foxql-native-channel'
 
 class node {
 
-    constructor(iceServers, signallingServer, parentEmitter)
+    constructor(iceServers, signallingServer, container)
     {
         this.iceServers = iceServers
         this.socket = signallingServer.signallingSocket
         this.id = null
-        this.emitter = parentEmitter
         this.p2p = null
         this.channel = null
         this.waitingMessage = false
+        this.container = container
     }
 
     async create(id)
@@ -35,16 +35,33 @@ class node {
         console.log('Datachannel is ready', this.id)
     }
 
-    handleDataChannelMessage(e)
+    async handleDataChannelMessage({data})
     {
-        //console.log(e, 'channel-message')
+        const parsedPackage = this.parsePackage(data)
+        if(!parsedPackage) return false
+
+        const {p2pChannelName} = parsedPackage
+
+        const listener = this.container.findNodeEvent(p2pChannelName)
+
+        if(!listener) return false
+
+        await listener(parsedPackage, false)
     }   
+
+    parsePackage(data)
+    {
+        try{
+            return JSON.parse(data)
+        }catch(e){
+            return false
+        }
+    }
 
     send(message)
     {
         if(this.channel.readyState !== 'open') return false
-
-        this.channel.send(message)
+        this.channel.send(JSON.stringify(message))
     }
 
     async createOffer(signature)
