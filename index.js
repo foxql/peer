@@ -17,8 +17,13 @@ class p2pNetwork extends bridge{
         this.appName = window.location.hostname
         this.nodeAddress = null
         this.maxNodeCount = maxNodeCount
-        this.maxCandidateCallTime = maxCandidateCallTime || 900 // 900 = 0.9 second
+        this.maxCandidateCallTime = maxCandidateCallTime || 2000 // 900 = 0.9 second
         this.constantSignallingServer = null
+
+        this.nodeMetaData = {
+            name: null,
+            description: null
+        }
 
         this.iceServers = [
             {urls:'stun:stun.l.google.com:19302'},
@@ -83,17 +88,25 @@ class p2pNetwork extends bridge{
         });
     }
 
-    async pow({transportPackage, livingTime, ...params})
+    async pow({transportPackage, livingTime})
     {
         if(this.status !== 'ready') return {warning: this.status}
-
+        const {p2pchannelName} = transportPackage
         const tempListenerName = uuidv4()
-        
-        this.bridgeSocket.on(tempListenerName, ({nodeAddress, candidateSignature}) => { // listen transport event result
+        const {question} = this.sigStore.generate(this.maxCandidateCallTime)
+        let powOffersPool = []
+
+        this.bridgeSocket.on(tempListenerName, ({nodeAddress, powQuestionAnswer}) => { // listen transport event result
+            
+            if(!this.sigStore.isvalid(powQuestionAnswer)){
+                return false
+            }
+
             const {nodeId, signallingServerAddress} = this.parseNodeAddress(nodeAddress)
             const signallHash = this.listenSignallingServer({host: signallingServerAddress}, false)
             const targetNode = this.createNode(signallHash, nodeId)
-            targetNode.createOffer(candidateSignature, signallHash)
+            targetNode.createOffer(powQuestionAnswer.answer, signallHash)
+            powOffersPool.push(targetNode)
         })
 
         this.transportMessage({
@@ -101,15 +114,39 @@ class p2pNetwork extends bridge{
             nodeId: this.nodeId,
             temporaryListener: tempListenerName,
             livingTime: livingTime,
-            nodeAddress: this.nodeAddress
+            nodeAddress: this.nodeAddress,
+            powQuestion: question
+        })
+
+        await this.sleep(livingTime) // wait pool
+
+        if(powOffersPool.length <= 0) return false
+
+        const results = []
+        const failedList = []
+
+        for(let nodeId in powOffersPool){
+            const node = powOffersPool[nodeId] || false
+            node.send(transportPackage)
+
+        }
+
+    }
+
+    async sleep(ms)
+    {
+        return new Promise((resolve)=> {
+            setTimeout(()=> {
+                resolve(true)
+            }, ms)
         })
     }
 
     async eventSimulation(eventObject)
     {
-        const {eventPackage} = eventObject
+        const {eventPackage, powQuestion} = eventObject
         const {nodeId, p2pChannelName} = eventPackage
-        
+
         if(nodeId === this.nodeId) return false
 
         if(this.findNode(nodeId)) return false // node currently connected.
@@ -122,17 +159,20 @@ class p2pNetwork extends bridge{
 
         if(!simulateProcess) return false
 
-        await this.sendSimulationDoneSignall(p2pChannelName, eventObject)
+        const powQuestionAnswer = this.sigStore.solveQuestion(powQuestion)
+        if(!powQuestionAnswer) return false
+
+        await this.sendSimulationDoneSignall(powQuestionAnswer, eventObject)
     }
 
-    async sendSimulationDoneSignall(p2pChannelName, eventObject)
+    async sendSimulationDoneSignall(powQuestionAnswer, eventObject)
     {
         const {bridgePoolingListener} = eventObject
-        const candidateConnectionSignature = this.sigStore.generate(p2pChannelName, this.maxCandidateCallTime)
+        
         this.bridgeSocket.emit('transport-pooling', {
             bridgePoolingListener: bridgePoolingListener,
             nodeAddress: this.nodeAddress,
-            candidateSignature: candidateConnectionSignature
+            powQuestionAnswer: powQuestionAnswer
         })
     }
 
@@ -181,7 +221,7 @@ class p2pNetwork extends bridge{
         const candidateNode = new node(
             this.iceServers, 
             this.signallingServers[signallHash],
-            this.emitNode.bind(this)
+            this
         )
 
         candidateNode.create(nodeId)
@@ -191,6 +231,13 @@ class p2pNetwork extends bridge{
         return candidateNode
     }
 
+    setMetaData({name, description})
+    {
+        this.nodeMetaData = {
+            name: name,
+            description: description
+        }
+    }
 }
 
 
