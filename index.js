@@ -91,7 +91,7 @@ class p2pNetwork extends bridge{
         });
     }
 
-    async pow({transportPackage, livingTime, stickyNode = false})
+    async pow({transportPackage, livingTime = 1000, stickyNode = false})
     {
         if(this.status !== 'ready') return {warning: this.status}
         const tempListenerName = uuidv4()
@@ -141,7 +141,7 @@ class p2pNetwork extends bridge{
         }
 
         await this.sleep(this.powPoolingtime)
-
+        delete this.events[poollingListenerName]
         return pool.export()
 
     }
