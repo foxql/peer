@@ -2,7 +2,7 @@ import 'regenerator-runtime/runtime'
 import bridge from './src/bridge'
 import signallingServer from './src/signalling'
 import sha256 from 'crypto-js/sha256'
-import { nodeId, node, sigStore} from './src/utils'
+import { nodeId, node, sigStore, dataPool} from './src/utils'
 import { v4 as uuidv4 } from 'uuid'
 import constantEvents from './src/events'
 
@@ -12,12 +12,13 @@ class p2pNetwork extends bridge{
         super(bridgeServer)
         this.signallingServers = {}
         this.events = {}
+        this.replyChannels = {}
         this.status = 'not-ready'
         this.nodeId = nodeId()
         this.appName = window.location.hostname
         this.nodeAddress = null
         this.maxNodeCount = maxNodeCount
-        this.maxCandidateCallTime = maxCandidateCallTime || 2000 // 900 = 0.9 second
+        this.maxCandidateCallTime = maxCandidateCallTime || 900 // 900 = 0.9 second
         this.constantSignallingServer = null
 
         this.nodeMetaData = {
@@ -84,30 +85,19 @@ class p2pNetwork extends bridge{
     loadEvents(events)
     {
         events.forEach( ({listener, listenerName}) => {
-            this.events[listenerName] = listener
+            this.events[listenerName] = listener.bind(this)
         });
     }
 
     async pow({transportPackage, livingTime})
     {
         if(this.status !== 'ready') return {warning: this.status}
-        const {p2pchannelName} = transportPackage
         const tempListenerName = uuidv4()
         const {question} = this.sigStore.generate(this.maxCandidateCallTime)
+
         let powOffersPool = []
 
-        this.bridgeSocket.on(tempListenerName, ({nodeAddress, powQuestionAnswer}) => { // listen transport event result
-            
-            if(!this.sigStore.isvalid(powQuestionAnswer)){
-                return false
-            }
-
-            const {nodeId, signallingServerAddress} = this.parseNodeAddress(nodeAddress)
-            const signallHash = this.listenSignallingServer({host: signallingServerAddress}, false)
-            const targetNode = this.createNode(signallHash, nodeId)
-            targetNode.createOffer(powQuestionAnswer.answer, signallHash)
-            powOffersPool.push(targetNode)
-        })
+        this.temporaryBridgelistener(tempListenerName, (node)=> {powOffersPool.push(node)})
 
         this.transportMessage({
             ...transportPackage,
@@ -122,15 +112,47 @@ class p2pNetwork extends bridge{
 
         if(powOffersPool.length <= 0) return false
 
-        const results = []
-        const failedList = []
+        const pool = new dataPool()
+
+        const poollingListenerName = uuidv4()
+        this.events[poollingListenerName] = (data) => {
+            pool.listen(data)
+        }
+
+        transportPackage = {
+            ...transportPackage,
+            reply: {
+                listener: poollingListenerName,
+                nodeId: this.nodeId
+            }
+        }        
+
 
         for(let nodeId in powOffersPool){
             const node = powOffersPool[nodeId] || false
             node.send(transportPackage)
-
         }
 
+        await this.sleep(800)
+
+        return pool.export()
+
+    }
+
+    temporaryBridgelistener(tempListenerName, callback)
+    {
+        this.bridgeSocket.on(tempListenerName, ({nodeAddress, powQuestionAnswer}) => { // listen transport event result
+            
+            if(!this.sigStore.isvalid(powQuestionAnswer)){
+                return false
+            }
+
+            const {nodeId, signallingServerAddress} = this.parseNodeAddress(nodeAddress)
+            const signallHash = this.listenSignallingServer({host: signallingServerAddress}, false)
+            const targetNode = this.createNode(signallHash, nodeId)
+            targetNode.createOffer(powQuestionAnswer.answer, signallHash)
+            callback(targetNode)
+        })
     }
 
     async sleep(ms)
@@ -205,15 +227,18 @@ class p2pNetwork extends bridge{
 
     }
 
-    emitNode(name, data)
+    reply({nodeId, listener}, data)
     {
-        if(this.events[name] == undefined) return false;
+        const targetNode = this.nodes[nodeId] || false
+        if(!targetNode) return false
 
-        const callbackMethod = (callback) => {
-            callback(data);
-        };
+        targetNode.send({
+            p2pChannelName: listener,
+            data: data,
+            nodeId: this.nodeId
+        })
 
-        this.events[name].forEach(callbackMethod);
+        return true
     }
 
     createNode(signallHash, nodeId)
