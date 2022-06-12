@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid'
 import constantEvents from './src/events'
 
 class p2pNetwork extends bridge{
-    constructor({bridgeServer, maxNodeCount, maxCandidateCallTime})
+    constructor({bridgeServer, maxNodeCount, maxCandidateCallTime, powPoolingtime})
     {
         super(bridgeServer)
         this.signallingServers = {}
@@ -19,6 +19,7 @@ class p2pNetwork extends bridge{
         this.nodeAddress = null
         this.maxNodeCount = maxNodeCount
         this.maxCandidateCallTime = maxCandidateCallTime || 900 // 900 = 0.9 second
+        this.powPoolingtime = powPoolingtime || 400 // ms
         this.constantSignallingServer = null
 
         this.nodeMetaData = {
@@ -34,6 +35,7 @@ class p2pNetwork extends bridge{
         this.sigStore = new sigStore(maxNodeCount)
 
         this.nodes = {}
+        this.connectedNodeCount = 0
         
     }
 
@@ -89,7 +91,7 @@ class p2pNetwork extends bridge{
         });
     }
 
-    async pow({transportPackage, livingTime})
+    async pow({transportPackage, livingTime, stickyNode = false})
     {
         if(this.status !== 'ready') return {warning: this.status}
         const tempListenerName = uuidv4()
@@ -117,6 +119,11 @@ class p2pNetwork extends bridge{
         const poollingListenerName = uuidv4()
         this.events[poollingListenerName] = (data) => {
             pool.listen(data)
+            
+            if(!stickyNode){
+                const node = this.nodes[data.nodeId]
+                node.close()
+            }
         }
 
         transportPackage = {
@@ -133,7 +140,7 @@ class p2pNetwork extends bridge{
             node.send(transportPackage)
         }
 
-        await this.sleep(800)
+        await this.sleep(this.powPoolingtime)
 
         return pool.export()
 
@@ -142,10 +149,12 @@ class p2pNetwork extends bridge{
     temporaryBridgelistener(tempListenerName, callback)
     {
         this.bridgeSocket.on(tempListenerName, ({nodeAddress, powQuestionAnswer}) => { // listen transport event result
-            
+
             if(!this.sigStore.isvalid(powQuestionAnswer)){
                 return false
             }
+
+            if(this.connectedNodeCount >= this.maxNodeCount) return false
 
             const {nodeId, signallingServerAddress} = this.parseNodeAddress(nodeAddress)
             const signallHash = this.listenSignallingServer({host: signallingServerAddress}, false)
@@ -252,7 +261,7 @@ class p2pNetwork extends bridge{
         candidateNode.create(nodeId)
 
         this.nodes[nodeId] = candidateNode
-
+        this.connectedNodeCount +=1
         return candidateNode
     }
 
@@ -262,6 +271,12 @@ class p2pNetwork extends bridge{
             name: name,
             description: description
         }
+    }
+
+    disconnect(id)
+    {
+        delete this.nodes[id]
+        this.connectedNodeCount -= 1
     }
 }
 
