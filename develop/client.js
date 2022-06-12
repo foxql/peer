@@ -24,7 +24,8 @@ window.testPOW = async ()=> {
             p2pChannelName: 'give-me-your-name',
             message: 'Hello world'
         },
-        livingTime: 1500
+        livingTime: 1500,
+        stickyNode: false
     })
     console.log(aa)
 }
