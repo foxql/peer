@@ -53,10 +53,6 @@ export default class {
             if(key.substring(0, this.letterCountForClue) == startWith){
                 this.whiteList[key] = nonce
                 this.dropWhiteList(key)
-                console.log({
-                    answer: key,
-                    nonce: nonce
-                })
                 return {
                     answer: key,
                     nonce: nonce
