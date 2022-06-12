@@ -22,10 +22,7 @@ window.testPOW = async ()=> {
     const aa = await p2p.pow({
         transportPackage: {
             p2pChannelName: 'give-me-your-name',
-            queryPackage: {
-                exampleKey: 'what u need'
-            }, 
-            stickyNode: true
+            message: 'Hello world'
         },
         livingTime: 1500
     })

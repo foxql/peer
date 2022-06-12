@@ -1,6 +1,6 @@
 export const listenerName = 'give-me-your-name'
 
-export async function listener(data, simulate = false)
+export async function listener({reply, message}, simulate = false)
 {
     if(simulate) { 
         console.log('Simulate state')
@@ -8,7 +8,8 @@ export async function listener(data, simulate = false)
         return true 
     }
 
-    console.log('RTC Channel message', data)
-
+    this.reply(reply, {
+        my_name: 'bora' + this.nodeId
+    })
 }
 
