@@ -25,6 +25,9 @@ class node {
 
         this.channel.onopen = this.handleDataChannelOpen.bind(this)
         this.channel.onmessage = this.handleDataChannelMessage.bind(this)
+        this.channel.onclose = ()=> {
+            this.container.disconnect(this.id)
+        }
         p2p.oniceconnectionstatechange = e => console.log(p2p.iceConnectionState)
     
         this.p2p = p2p
@@ -106,6 +109,11 @@ class node {
                 signature: signature
             })
         }
+    }
+
+    close()
+    {
+        this.p2p.close()
     }
 }
 
