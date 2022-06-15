@@ -9,6 +9,9 @@ import constantEvents from './src/events'
 class p2pNetwork extends bridge{
     constructor({bridgeServer, maxNodeCount, maxCandidateCallTime, powPoolingtime})
     {
+        if(bridgeServer === undefined) {
+            bridgeServer = {host: 'http://127.0.0.1:1923'}
+        }
         super(bridgeServer)
         this.signallingServers = {}
         this.events = {}
@@ -155,7 +158,7 @@ class p2pNetwork extends bridge{
             }
 
             if(this.connectedNodeCount >= this.maxNodeCount) return false
-
+            this.bridgeSocket.emit('pow-is-correct', powQuestionAnswer)
             const {nodeId, signallingServerAddress} = this.parseNodeAddress(nodeAddress)
             const signallHash = this.listenSignallingServer({host: signallingServerAddress}, false)
             const targetNode = this.createNode(signallHash, nodeId)
