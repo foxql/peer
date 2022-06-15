@@ -13,6 +13,7 @@ export default class {
         const socket =  io(this.host, {transports : ['websocket']})
         socket.on('connect', ()=> {
             this.bridgeStatus = 'connected'
+            socket.emit('upgrade-dapp')
             socket.emit('find-available-server', true)
         })
 
