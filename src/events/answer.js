@@ -1,14 +1,12 @@
-const name = 'answer';
+export const listenerName = 'answer'
 
-async function listener (network, payload)
+export async function listener (data, simulated = false)
 {
-    const targetPeer = network.connections[payload.from];
-    if(targetPeer){
-        targetPeer.madeAnswer(payload.sdp);
-    }
-}
+    const {from, sdp} = data
+    
+    const targetNode = this.nodes[from] || false
 
-export default {
-    name : name,
-    listener : listener
-};
+    if(!targetNode) return
+
+    targetNode.p2p.setRemoteDescription({type: "answer", sdp: sdp})
+}

@@ -1,51 +1,30 @@
-import peer from '../index.js';
+import network from '../index.js';
+import events from './events'
 
-
-const network = new peer();
-
-network.use('socketOptions', {
-    host : 'localhost',
-    port : 1923,
-    protocol : 'http'
+const p2p = new network({
+    maxNodeCount: 30,
+    maxCandidateCallTime: 2000 // ms
 });
 
-network.use('peerInformation', {
-    alias : 'FoxQL - Custom Node Name',
-    avatar : 'https://foxql.com/media/logo.png',
-    explanation : 'My node custom object!'
+p2p.setMetaData({
+    name: 'test-node',
+    description: 'test-desc'
 })
 
-network.onPeer('question', async (data)=>{
-    console.log(data._by, 'Tarafından bir soru alındı.');
+p2p.loadEvents(events)
 
-    if(data._simulate) { // simulation case dedected.
-        /** Simulate event and return boolean */
-        return true;
-    }
+p2p.start()
 
-    network.send(data._by, {
-        listener : 'answer',
-        data : {
-            message : 'Cevap Gönderildi'
-        }
+window.testPOW = async ()=> {
+    const aa = await p2p.pow({
+        transportPackage: {
+            p2pChannelName: 'give-me-your-name',
+            message: 'Hello world'
+        },
+        livingTime: 1500,
+        stickyNode: false
     })
+    console.log(aa)
+}
 
-    return true;
-});
-
-network.onPeer('answer', async (data)=>{
-    console.log(data, 'Tarafından bir cevap alındı.');
-});
-
-
-network.open();
-
-
-network.broadcast({
-    listener : 'question',
-    data : {
-        message : 'message content!'
-    }
-});
-
-window.p2p = network;
+window.p2p = p2p;

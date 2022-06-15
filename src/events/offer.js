@@ -1,13 +1,11 @@
-const name = 'offer';
+export const listenerName = 'offer'
 
-async function listener (network, payload)
+export async function listener(data, simulate = false)
 {
-    const offerPeer = network.newPeer(payload.from);
-    offerPeer.createAnswer(payload.sdp);
-    network.connections[payload.from] = offerPeer;
-}
+    const {signature, from, sdp} = data
+    const access = this.sigStore.existWhiteList(signature)
 
-export default {
-    name : name,
-    listener : listener
-};
+    if(!access) return
+    const offerNode = this.createNode(this.constantSignallingServer, from)
+    offerNode.createAnswer(signature, sdp)
+}

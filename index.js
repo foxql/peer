@@ -1,258 +1,287 @@
 import 'regenerator-runtime/runtime'
-import io from 'socket.io-client';
-import eventList from './src/events.js';
-import Peer from './src/untils/peer.js';
-import RandomString from './src/untils/random.js';
+import bridge from './src/bridge'
+import signallingServer from './src/signalling'
+import sha256 from 'crypto-js/sha256'
+import { nodeId, node, sigStore, dataPool} from './src/utils'
+import { v4 as uuidv4 } from 'uuid'
+import constantEvents from './src/events'
 
-import dataModel from './src/models/dataModel.js';
-
-class foxqlPeer {
-    constructor()
+class p2pNetwork extends bridge{
+    constructor({bridgeServer, maxNodeCount, maxCandidateCallTime, powPoolingtime})
     {
+        if(bridgeServer === undefined) {
+            bridgeServer = {host: 'http://127.0.0.1:1923'}
+        }
+        super(bridgeServer)
+        this.signallingServers = {}
+        this.events = {}
+        this.replyChannels = {}
+        this.status = 'not-ready'
+        this.nodeId = nodeId()
+        this.appName = window.location.hostname
+        this.nodeAddress = null
+        this.maxNodeCount = maxNodeCount
+        this.maxCandidateCallTime = maxCandidateCallTime || 900 // 900 = 0.9 second
+        this.powPoolingtime = powPoolingtime || 400 // ms
+        this.constantSignallingServer = null
 
-        this.peerInformation = {
-            alias : null,
-            avatar : null,
-            explanation : null
-        };
+        this.nodeMetaData = {
+            name: null,
+            description: null
+        }
 
-        this.socketOptions = {
-            host : 'foxql-signal.herokuapp.com',
-            port : null,
-            protocol : 'https'
-        };
-    
-        this.networkMaxConnectionSize = 40;
-        this.socketConnection = false;
-        this.maxSocketConnectionCheckInterval = 30;
-        
-        this.myPeerId = null;
-    
         this.iceServers = [
             {urls:'stun:stun.l.google.com:19302'},
             {urls:'stun:stun4.l.google.com:19302'}
         ];
-    
-        this.avaliableUseKeys = [
-            'socketOptions',
-            'maxConnections',
-            'peerInformation'
-        ];
 
-        this.simulatedListenerDestroyTime = 450;
+        this.sigStore = new sigStore(maxNodeCount)
 
-        this.connections = {};
-        this.peerEvents = {};
+        this.nodes = {}
+        this.connectedNodeCount = 0
+        
     }
 
-    open()
+    start()
     {
-        if(typeof this.socketOptions.port == 'number') {
-            this.socketOptions.port = ':'+this.socketOptions.port 
-        }else{
-            this.socketOptions.port = '';
+        this.connectBridge(
+            this.listenSignallingServer
+        )
+
+        this.loadEvents(constantEvents)
+    }
+
+    listenSignallingServer({host}, simulationListener = true)
+    {
+        if(host === undefined) return false
+
+        const key = sha256(host).toString()
+        if(this.existSignallingServer(key)) { // signalling Server is found
+            return key
         }
-        this.socket = io(`${this.socketOptions.protocol}://${this.socketOptions.host}${this.socketOptions.port}`, {
-            transports : ['websocket']
-        });   
-
-        this.loadEvents();
-
-        this.socket.on('connect', ()=>{
-
-            const peerId = this.socket.id;
-
-            if(this.peerInformation.alias === null) {
-                this.peerInformation.alias = peerId;
+        const signallingServerInstance = new signallingServer(host, ()=> {
+            if(this.status === 'not-ready') { // if first signalling server connection
+                this.generateNodeAddress(host)
+                this.constantSignallingServer = key
             }
+            this.upgradeConnection(key)
+            this.status = 'ready'
+        }, simulationListener ? this.eventSimulation.bind(this) : null)
 
-            this.myPeerId = peerId
-            this.socketConnection = true;
+        const self = this
 
-            this.socket.on('eventSimulation', async (eventObject)=>{
-                const targetMethod = this.peerEvents[eventObject.listener] || false;
+        signallingServerInstance.loadEvents(constantEvents, self)
 
-                if(!targetMethod) return;
-                
+        this.signallingServers[key] = signallingServerInstance
 
-                const targettingPeer = eventObject.data._by;
+        return key
+    }
 
-                if(this.connections[targettingPeer] == undefined) { // if not connected.
-                    eventObject.data._simulate = true;
-                    const process = await targetMethod[0](eventObject.data);
-                    if(process) {
-                        this.simulationIsDone(eventObject);
-                    }
-                }
-            });
-           // this.socket.emit('call', this.networkStableConnectionSize);
+    upgradeConnection(key)
+    {
+        this.signallingServers[key].signallingSocket.emit('upgrade', this.nodeId)
+    }
+
+    existSignallingServer(key)
+    {
+        return this.signallingServers[key] !== undefined ? true : false
+    }
+
+    loadEvents(events)
+    {
+        events.forEach( ({listener, listenerName}) => {
+            this.events[listenerName] = listener.bind(this)
         });
     }
 
-
-    simulationIsDone(eventObject)
+    async pow({transportPackage, livingTime = 1000, stickyNode = false})
     {
-        this.socket.emit('simulationDone', {
-            to : eventObject.data._by,
-            targetListener : eventObject.answerWaitingListener
-        });
-    }
+        if(this.status !== 'ready') return {warning: this.status}
+        const tempListenerName = uuidv4()
+        const {question} = this.sigStore.generate(this.maxCandidateCallTime)
 
+        let powOffersPool = []
 
-    onPeer(name, listener)
-    {
-        if(this.peerEvents[name] == undefined) this.peerEvents[name] = [];
-        this.peerEvents[name].push(listener.bind(this));
-    }
+        this.temporaryBridgelistener(tempListenerName, (node)=> {powOffersPool.push(node)})
 
-    emitPeer(name, data)
-    {
-        if(this.peerEvents[name] == undefined) return false;
-
-        const callbackMethod = (callback) => {
-            callback(data);
-        };
-
-        this.peerEvents[name].forEach(callbackMethod);
-    }
-
-    loadEvents()
-    {
-        eventList.forEach(event => {   
-            this.socket.on(event.name, data => {event.listener(this, data)});
-        });
-    }
-
-    use(nameSpace, values)
-    {
-        if(this.avaliableUseKeys.includes(nameSpace)) this[nameSpace] = {...this[nameSpace], ...values};
-    }
-
-    async waitSocketConnection()
-    {
-        let retryCount = 0;
-
-        return new Promise((resolve)=>{
-            let interval = setInterval(()=>{
-                if(retryCount > this.maxSocketConnectionCheckInterval){
-                    resolve(false)
-                    clearInterval(interval)
-                    return false;
-                }
-                if(this.socketConnection) {
-                    resolve(true)
-                    clearInterval(interval)
-                }
-            },50);
-        });
-    }
-
-
-    async broadcast(data)
-    {
-        if(!this.socketConnection){
-            await this.waitSocketConnection();
-        }
-
-        const validate = dataModel(data);
-        if(validate.error) {return validate}
-
-        data.data._by = this.myPeerId;
-        data.data._peerInformation = this.peerInformation;
-
-        const simulatedPeerListener = RandomString();
-
-        data.answerWaitingListener = simulatedPeerListener;
-
-        this.socket.emit('eventSimulation', data);
-
-        const dataPackage = JSON.stringify(data);
-
-        let simulatedPeerIdList = [];
-
-        this.socket.on(simulatedPeerListener, async (peerId)=>{
-            const connectionList = Object.keys(this.connections);
-
-            if(connectionList.length >= this.networkMaxConnectionSize) {
-                this.closePeer(connectionList.shift())
-            }
-
-            const activePeerConnection = this.connections[peerId] || false;
-            if(!activePeerConnection) {
-                const peer = this.newPeer(peerId);
-                peer.dataChannelQueue.push(dataPackage);
-                peer.createOffer();
-                this.connections[peerId] = peer;
-                simulatedPeerIdList.push(peerId);
-            }
+        this.transportMessage({
+            ...transportPackage,
+            nodeId: this.nodeId,
+            temporaryListener: tempListenerName,
+            livingTime: livingTime,
+            nodeAddress: this.nodeAddress,
+            powQuestion: question
         })
 
-        return new Promise((resolve)=>{
-            setTimeout(()=>{
-                delete this.socket._callbacks['$'+simulatedPeerListener];
-                const currentConnections = this.connections;
-    
-                for(let id in currentConnections) {
-                    const peer = currentConnections[id];
-                    const channel = peer.dataChannel;
-                    if(channel == undefined) {
-                        this.closePeer(id)
-                        continue
-                    }
-                    peer.send(dataPackage)
-                }  
+        await this.sleep(livingTime) // wait pool
 
-                resolve(true)
-            }, this.simulatedListenerDestroyTime);
-        });
-    }
+        if(powOffersPool.length <= 0) return false
 
-    send(id, data)
-    {
-        const validate = dataModel(data);
+        const pool = new dataPool()
 
-        if(validate.error) {return validate}
-
-        const connection = this.connections[id] || false;
-        if(!connection) return false;
-
-        data.data._by = this.myPeerId;
-        data.data._peerInformation = this.peerInformation;
-        const dataPackage = JSON.stringify(data);
-
-        connection.send(dataPackage);
-    }
-
-    newPeer(userId)
-    {
-        return new Peer(
-            this.iceServers,
-            this.socket,
-            userId,
-            this.emitPeer.bind(this)
-        );
-    }
-
-    stableConnectionCount()
-    {
-        const connections = Object.values(this.connections);
-        return [].concat(...connections).filter(connection =>{
-            if(connection.dataChannel.readyState == 'open') {
-                return true;
+        const poollingListenerName = uuidv4()
+        this.events[poollingListenerName] = (data) => {
+            pool.listen(data)
+            
+            if(!stickyNode){
+                const node = this.nodes[data.nodeId]
+                node.close()
             }
-        }).length
+        }
+
+        transportPackage = {
+            ...transportPackage,
+            reply: {
+                listener: poollingListenerName,
+                nodeId: this.nodeId
+            }
+        }        
+
+
+        for(let nodeId in powOffersPool){
+            const node = powOffersPool[nodeId] || false
+            node.send(transportPackage)
+        }
+
+        await this.sleep(this.powPoolingtime)
+        delete this.events[poollingListenerName]
+        return pool.export()
+
     }
 
-
-    async closePeer(id)
+    temporaryBridgelistener(tempListenerName, callback)
     {
-        if(this.connections[id] == undefined) {return false;}
+        this.bridgeSocket.on(tempListenerName, ({nodeAddress, powQuestionAnswer}) => { // listen transport event result
 
-        this.connections[id].dataChannel.close();
-        delete this.connections[id];
+            if(!this.sigStore.isvalid(powQuestionAnswer)){
+                return false
+            }
+
+            if(this.connectedNodeCount >= this.maxNodeCount) return false
+            this.bridgeSocket.emit('pow-is-correct', powQuestionAnswer)
+            const {nodeId, signallingServerAddress} = this.parseNodeAddress(nodeAddress)
+            const signallHash = this.listenSignallingServer({host: signallingServerAddress}, false)
+            const targetNode = this.createNode(signallHash, nodeId)
+            targetNode.createOffer(powQuestionAnswer.answer, signallHash)
+            callback(targetNode)
+        })
     }
 
+    async sleep(ms)
+    {
+        return new Promise((resolve)=> {
+            setTimeout(()=> {
+                resolve(true)
+            }, ms)
+        })
+    }
+
+    async eventSimulation(eventObject)
+    {
+        const {eventPackage, powQuestion} = eventObject
+        const {nodeId, p2pChannelName} = eventPackage
+
+        if(nodeId === this.nodeId) return false
+
+        if(this.findNode(nodeId)) return false // node currently connected.
+
+        const listener = this.findNodeEvent(p2pChannelName) // find p2p event listener
+
+        if(!listener) return false
+
+        const simulateProcess = await listener(eventPackage, true)
+
+        if(!simulateProcess) return false
+
+        const powQuestionAnswer = this.sigStore.solveQuestion(powQuestion)
+        if(!powQuestionAnswer) return false
+
+        await this.sendSimulationDoneSignall(powQuestionAnswer, eventObject)
+    }
+
+    async sendSimulationDoneSignall(powQuestionAnswer, eventObject)
+    {
+        const {bridgePoolingListener} = eventObject
+        
+        this.bridgeSocket.emit('transport-pooling', {
+            bridgePoolingListener: bridgePoolingListener,
+            nodeAddress: this.nodeAddress,
+            powQuestionAnswer: powQuestionAnswer
+        })
+    }
+
+    findNodeEvent(listenerName)
+    {
+        return this.events[listenerName] || false
+    }
+
+    findNode(nodeId)
+    {
+        return this.nodes[nodeId] ? true : false
+    }
+
+    generateNodeAddress(signallingHostAddress)
+    {
+        const {protocol, hostname, port = 80} = new URL(signallingHostAddress)
+        this.nodeAddress = `${this.nodeId}&${protocol.slice(0, -1)}&${hostname}&${port}`
+    }
+
+    parseNodeAddress(nodeAddress)
+    {
+        const [nodeId, protocol, host, port] = nodeAddress.split('&')
+        
+        const signallingServerAddress = `${protocol}://${host}:${port}`
+
+        return {
+            nodeId,
+            signallingServerAddress
+        }
+
+    }
+
+    reply({nodeId, listener}, data)
+    {
+        const targetNode = this.nodes[nodeId] || false
+        if(!targetNode) return false
+
+        targetNode.send({
+            p2pChannelName: listener,
+            data: data,
+            nodeId: this.nodeId
+        })
+
+        return true
+    }
+
+    createNode(signallHash, nodeId)
+    {
+        const candidateNode = new node(
+            this.iceServers, 
+            this.signallingServers[signallHash],
+            this
+        )
+
+        candidateNode.create(nodeId)
+
+        this.nodes[nodeId] = candidateNode
+        this.connectedNodeCount +=1
+        return candidateNode
+    }
+
+    setMetaData({name, description})
+    {
+        this.nodeMetaData = {
+            name: name,
+            description: description
+        }
+    }
+
+    disconnect(id)
+    {
+        delete this.nodes[id]
+        this.connectedNodeCount -= 1
+    }
 }
 
 
-export default foxqlPeer
+export default p2pNetwork
