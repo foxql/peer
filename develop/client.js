@@ -2,9 +2,6 @@ import network from '../index.js';
 import events from './events'
 
 const p2p = new network({
-    bridgeServer: {
-        host: 'http://127.0.0.1:1923'
-    },
     maxNodeCount: 30,
     maxCandidateCallTime: 2000 // ms
 });
