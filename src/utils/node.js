@@ -28,7 +28,11 @@ class node {
         this.channel.onclose = ()=> {
             this.container.disconnect(this.id)
         }
-        p2p.oniceconnectionstatechange = e => console.log(p2p.iceConnectionState)
+        p2p.oniceconnectionstatechange = e => {
+            if(p2p.iceConnectionState === 'failed'){
+                this.container.disconnect(this.id)
+            }
+        }
     
         this.p2p = p2p
     }
