@@ -23,9 +23,6 @@
     "url": "https://github.com/foxql/peer/issues"
   },
   "homepage": "https://github.com/foxql/peer#readme",
-  "devDependencies": {
-    "parcel": "^1.12.4"
-  },
   "dependencies": {
     "crypto-js": "^4.1.1",
     "socket.io-client": "^4.1.2",
@@ -33,5 +30,9 @@
   },
   "browserslist": [
     "last 1 Chrome versions"
-  ]
+  ],
+  "devDependencies": {
+    "buffer": "^6.0.3",
+    "parcel": "^2.6.0"
+  }
 }
