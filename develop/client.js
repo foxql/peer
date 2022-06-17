@@ -1,5 +1,6 @@
 import network from '../index.js';
 import events from './events'
+import * as dbConfig from './database'
 
 const p2p = new network({
     maxNodeCount: 30,
@@ -13,7 +14,7 @@ p2p.setMetaData({
 
 p2p.loadEvents(events)
 
-p2p.start()
+p2p.start(dbConfig)
 
 window.testPOW = async ()=> {
     const aa = await p2p.pow({
