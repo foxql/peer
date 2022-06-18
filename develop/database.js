@@ -9,7 +9,6 @@ export function onerror(e)
 export function onupgradeneeded(){
     //1
     const db = this.request.result;
-    console.log(db)
     //2
     const store = db.createObjectStore("entrys", { keyPath: "id" });
   
