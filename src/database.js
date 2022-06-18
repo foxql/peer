@@ -7,6 +7,7 @@ export default class {
         this.status = 'waiting'
         this.request = null
         this.ready = false
+        this.db = null
     }
 
     open({version, onupgradeneeded, onerror})
@@ -28,6 +29,7 @@ export default class {
         this.request.onsuccess = (e)=> {
             this.status = 'connected'
             this.ready = true
+            this.db = e.target.result
         }
     }
 }
