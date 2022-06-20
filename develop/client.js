@@ -28,4 +28,17 @@ window.testPOW = async ()=> {
     console.log(aa)
 }
 
+window.addEntry = ()=> {
+    const transaction = p2p.indexedDb.transaction('entrys', 'readwrite')
+    const store = transaction.objectStore('entrys')
+    store.put({
+        content: 'Mikrofonda ben kayboldum beya',
+        id: 2
+    })
+
+    transaction.oncomplete = (e => {
+        console.log(e)
+    })
+}
+
 window.p2p = p2p;
