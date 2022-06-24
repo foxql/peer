@@ -1,5 +1,6 @@
 import network from '../index.js';
 import events from './events'
+import * as dbConfig from './database'
 
 const p2p = new network({
     maxNodeCount: 30,
@@ -13,7 +14,7 @@ p2p.setMetaData({
 
 p2p.loadEvents(events)
 
-p2p.start()
+p2p.start(dbConfig)
 
 window.testPOW = async ()=> {
     const aa = await p2p.pow({
@@ -25,6 +26,19 @@ window.testPOW = async ()=> {
         stickyNode: false
     })
     console.log(aa)
+}
+
+window.addEntry = ()=> {
+    const transaction = p2p.indexedDb.transaction('entrys', 'readwrite')
+    const store = transaction.objectStore('entrys')
+    store.put({
+        content: 'Mikrofonda ben kayboldum beya',
+        id: 2
+    })
+
+    transaction.oncomplete = (e => {
+        console.log(e)
+    })
 }
 
 window.p2p = p2p;

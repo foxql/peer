@@ -1,6 +1,7 @@
 import 'regenerator-runtime/runtime'
 import bridge from './src/bridge'
 import signallingServer from './src/signalling'
+import database from './src/database'
 import sha256 from 'crypto-js/sha256'
 import { nodeId, node, sigStore, dataPool} from './src/utils'
 import { v4 as uuidv4 } from 'uuid'
@@ -25,6 +26,8 @@ class p2pNetwork extends bridge{
         this.powPoolingtime = powPoolingtime || 400 // ms
         this.constantSignallingServer = null
 
+        this.indexedDb = new database()
+
         this.nodeMetaData = {
             name: null,
             description: null
@@ -42,13 +45,15 @@ class p2pNetwork extends bridge{
         
     }
 
-    start()
+    start(databaseListeners)
     {
         this.connectBridge(
             this.listenSignallingServer
         )
 
         this.loadEvents(constantEvents)
+
+        this.indexedDb.open(databaseListeners)
     }
 
     listenSignallingServer({host}, simulationListener = true)
