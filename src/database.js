@@ -32,4 +32,9 @@ export default class {
             this.db = e.target.result
         }
     }
+
+    transaction(storeName, operation)
+    {
+        return this.db.transaction(storeName, operation)
+    }
 }
