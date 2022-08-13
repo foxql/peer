@@ -2,8 +2,8 @@ export const version = 2
 
 export function onerror(e)
 {
-      console.error("An error occurred with IndexedDB")
-      console.error(e)
+    console.error("An error occurred with IndexedDB")
+    console.error(e)
 }
 
 export function onupgradeneeded(){
