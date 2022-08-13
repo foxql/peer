@@ -63,7 +63,7 @@ export default class {
         if(Array.isArray(data)){
             data.forEach(item => {
                 this.push(item, nodeId)
-            });
+            })
 
             return true
         }

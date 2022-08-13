@@ -17,13 +17,14 @@ p2p.loadEvents(events)
 p2p.start(dbConfig)
 
 window.testPOW = async ()=> {
-    const aa = await p2p.pow({
+    const aa = await p2p.ask({
         transportPackage: {
             p2pChannelName: 'give-me-your-name',
             message: 'Hello world'
         },
         livingTime: 1500,
-        stickyNode: false
+        stickyNode: true,
+        localWork: false
     })
     console.log(aa)
 }
@@ -32,8 +33,8 @@ window.addEntry = ()=> {
     const transaction = p2p.indexedDb.transaction('entrys', 'readwrite')
     const store = transaction.objectStore('entrys')
     store.put({
-        content: 'Mikrofonda ben kayboldum beya',
-        id: 2
+        content: 'My first content in stored indexedDB',
+        id: 1
     })
 
     transaction.oncomplete = (e => {

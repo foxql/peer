@@ -99,7 +99,7 @@ class p2pNetwork extends bridge{
         });
     }
 
-    async pow({transportPackage, livingTime = 1000, stickyNode = false})
+    async ask({transportPackage, livingTime = 1000, stickyNode = false, localWork = false})
     {
         if(this.status !== 'ready') return {warning: this.status}
         const tempListenerName = uuidv4()
@@ -119,8 +119,8 @@ class p2pNetwork extends bridge{
         })
 
         await this.sleep(livingTime) // wait pool
-
-        if(powOffersPool.length <= 0) return false
+        
+        if(this.connectedNodeCount <= 0) return false
 
         const pool = new dataPool()
 
@@ -142,9 +142,10 @@ class p2pNetwork extends bridge{
             }
         }        
 
+        let effectedNodes = localWork ? powOffersPool : this.nodes
 
-        for(let nodeId in powOffersPool){
-            const node = powOffersPool[nodeId] || false
+        for(let nodeId in effectedNodes){
+            const node = effectedNodes[nodeId] || false
             node.send(transportPackage)
         }
 
@@ -188,7 +189,10 @@ class p2pNetwork extends bridge{
 
         if(nodeId === this.nodeId) return false
 
-        if(this.findNode(nodeId)) return false // node currently connected.
+        if(this.findNode(nodeId)) {
+            console.log('Bağlıyım zaten ya görmüyon mu ?')
+            return false
+        } // node currently connected.
 
         const listener = this.findNodeEvent(p2pChannelName) // find p2p event listener
 
