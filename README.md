@@ -6,7 +6,7 @@ Foxql, web2 teknolojileri ile merkezi olmayan uygulamalar geliştirmenizi sağla
 - Bir verinin varlığı, veriyi sahiplenen düğümün ulaşılabilir olmasına bağlıdır. Bu ağda sorduğunuz sorunun cevabının t anında varlığını sorgulayabildiğiniz anlamına gelir. 
 - Verilerin varlığının kesin olarak kanıtlanabilmesi için düğümlerinize herhangi bir web3 blok zincirinde çıkartacağınız tokenları ödül olarak dağıtabilirsiniz.
 - FoxQL sinyalleşme aşamasında görece olarak merkezidir. Bu önemli değil çünkü sinyalleşme oldukça ucuz bir çözüm. Siz istediğiniz sürece ağda iletişim her zaman devam edecektir.
-- Yaptığınız her soru rastgele bir hash sorusu üretecektir. Cevabı ne kadarlık bir süre boyunca dinlediğiniz etkinliğin zorluğunu doğrudan etkiler.
+- Yaptığınız her eylem rastgele bir hash sorusu üretecektir. Cevabı dinlediğiniz süre ve seçilebilir nonce aralığı dinlediğiniz etkinliğin zorluğunu belirleyecektir.
 - FoxQL gerekmedikçe diğer düğümler ile etkileşime girmez, etkileşime girdiği düğümler ile işi bittiğinde bağlantıları öldürür ve yenilerini beklemeye devam eder. Bu webRTC tarafında bazı performans ve sınırlandırmaların önemi olmadığı anlamına gelir.
 - Son kullanıcı dilediği taktirde düğümü ile alakalı olan tüm bilgileri farklı bir platforma geçirebilir. Bu geliştiricilerin son kullanıcıyı rahatsız edebilecek kararlar almasını engeller.
 
