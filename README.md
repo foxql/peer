@@ -9,6 +9,7 @@ Foxql, web2 teknolojileri ile merkezi olmayan uygulamalar geliştirmenizi sağla
 - Yaptığınız her eylem rastgele bir hash sorusu üretecektir. Cevabı dinlediğiniz süre ve seçilebilir nonce aralığı dinlediğiniz etkinliğin zorluğunu belirleyecektir.
 - FoxQL gerekmedikçe diğer düğümler ile etkileşime girmez, etkileşime girdiği düğümler ile işi bittiğinde bağlantıları öldürür ve yenilerini beklemeye devam eder. Bu webRTC tarafında bazı performans ve sınırlandırmaların önemi olmadığı anlamına gelir.
 - Son kullanıcı dilediği taktirde düğümü ile alakalı olan tüm bilgileri farklı bir platforma geçirebilir. Bu geliştiricilerin son kullanıcıyı rahatsız edebilecek kararlar almasını engeller.
+- FoxQL hiç bir etkinliğin kaydını tutmaz, düğümler arasında gerçekleşen veri alışverişini takip etmez. Sadece soruların diğer düğümlere iletilmesini ve yeni bir bağlantı yarışının başlamasını sağlar
 
 ## Kurulum
 [npm](https://www.npmjs.com)
