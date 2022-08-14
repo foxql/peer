@@ -8,18 +8,14 @@ import { v4 as uuidv4 } from 'uuid'
 import constantEvents from './src/events'
 
 class p2pNetwork extends bridge{
-    constructor({bridgeServer, maxNodeCount, maxCandidateCallTime, powPoolingtime})
+    constructor({bridgeServer, maxNodeCount, maxCandidateCallTime, powPoolingtime, iceServers})
     {
-        if(bridgeServer === undefined) {
-            bridgeServer = {host: 'http://127.0.0.1:1923'}
-        }
         super(bridgeServer)
         this.signallingServers = {}
         this.events = {}
         this.replyChannels = {}
         this.status = 'not-ready'
         this.nodeId = nodeId()
-        this.appName = window.location.hostname
         this.nodeAddress = null
         this.maxNodeCount = maxNodeCount
         this.maxCandidateCallTime = maxCandidateCallTime || 900 // 900 = 0.9 second
@@ -33,7 +29,7 @@ class p2pNetwork extends bridge{
             description: null
         }
 
-        this.iceServers = [
+        this.iceServers = iceServers || [
             {urls:'stun:stun.l.google.com:19302'},
             {urls:'stun:stun4.l.google.com:19302'}
         ];
@@ -53,7 +49,11 @@ class p2pNetwork extends bridge{
 
         this.loadEvents(constantEvents)
 
-        this.indexedDb.open(databaseListeners)
+        if(databaseListeners !== undefined){
+            this.indexedDb.open(databaseListeners)
+        }
+
+        
     }
 
     listenSignallingServer({host}, simulationListener = true)
@@ -95,8 +95,13 @@ class p2pNetwork extends bridge{
     loadEvents(events)
     {
         events.forEach( ({listener, listenerName}) => {
-            this.events[listenerName] = listener.bind(this)
+            this.on(listenerName, listener)
         });
+    }
+
+    on(listenerName, listener)
+    {
+        this.events[listenerName] = listener.bind(this)
     }
 
     async ask({transportPackage, livingTime = 1000, stickyNode = false, localWork = false})
@@ -136,7 +141,7 @@ class p2pNetwork extends bridge{
 
         transportPackage = {
             ...transportPackage,
-            reply: {
+            sender: {
                 listener: poollingListenerName,
                 nodeId: this.nodeId
             }

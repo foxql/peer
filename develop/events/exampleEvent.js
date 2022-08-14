@@ -1,6 +1,6 @@
 export const listenerName = 'give-me-your-name'
 
-export async function listener({reply, message}, simulate = false)
+export async function listener({reply, sender}, simulate = false)
 {
     if(simulate) { 
         console.log('Simulate state')
@@ -8,7 +8,7 @@ export async function listener({reply, message}, simulate = false)
         return true 
     }
     
-    this.reply(reply, {
+    this.reply(sender, {
         my_name: 'bora' + this.nodeId
     })
 }

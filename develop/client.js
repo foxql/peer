@@ -4,8 +4,11 @@ import * as dbConfig from './database'
 
 const p2p = new network({
     maxNodeCount: 30,
-    maxCandidateCallTime: 2000 // ms
-});
+    maxCandidateCallTime: 2000, // ms
+    bridgeServer: {
+        host: 'http://127.0.0.1:1923'
+    }
+})
 
 p2p.setMetaData({
     name: 'test-node',
@@ -14,10 +17,10 @@ p2p.setMetaData({
 
 p2p.loadEvents(events)
 
-p2p.start(dbConfig)
+p2p.start()
 
 window.testPOW = async ()=> {
-    const aa = await p2p.ask({
+    const answer = await p2p.ask({
         transportPackage: {
             p2pChannelName: 'give-me-your-name',
             message: 'Hello world'
@@ -26,7 +29,7 @@ window.testPOW = async ()=> {
         stickyNode: true,
         localWork: false
     })
-    console.log(aa)
+    console.log(answer)
 }
 
 window.addEntry = ()=> {
