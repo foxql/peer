@@ -1,109 +1,57 @@
 # FoxQL
 
-Foxql, web2 teknolojileri ile merkezi olmayan uygulamalar geliştirmenizi sağlar.
+FoxQL used for create decentralized applications via WEB 2 technologies.
 
-- Doğası gereği foxql ile geliştirdiğiniz uygulamalar oldukça kaotik bir çalışma şekline sahip olacaklar.
-- Bir verinin varlığı, veriyi sahiplenen düğümün ulaşılabilir olmasına bağlıdır. Bu ağda sorduğunuz sorunun cevabının t anında varlığını sorgulayabildiğiniz anlamına gelir. 
-- Verilerin varlığının kesin olarak kanıtlanabilmesi için düğümlerinize herhangi bir web3 blok zincirinde çıkartacağınız tokenları ödül olarak dağıtabilirsiniz.
-- FoxQL sinyalleşme aşamasında görece olarak merkezidir. Bu önemli değil çünkü sinyalleşme oldukça ucuz bir çözüm. Siz istediğiniz sürece ağda iletişim her zaman devam edecektir.
-- Yaptığınız her eylem rastgele bir hash sorusu üretecektir. Cevabı dinlediğiniz süre ve seçilebilir nonce aralığı dinlediğiniz etkinliğin zorluğunu belirleyecektir.
-- FoxQL gerekmedikçe diğer düğümler ile etkileşime girmez, etkileşime girdiği düğümler ile işi bittiğinde bağlantıları öldürür ve yenilerini beklemeye devam eder. Bu webRTC tarafında bazı performans ve sınırlandırmaların önemi olmadığı anlamına gelir.
-- Son kullanıcı dilediği taktirde düğümü ile alakalı olan tüm bilgileri farklı bir platforma geçirebilir. Bu geliştiricilerin son kullanıcıyı rahatsız edebilecek kararlar almasını engeller.
-- FoxQL hiç bir etkinliğin kaydını tutmaz, düğümler arasında gerçekleşen veri alışverişini takip etmez. Sadece soruların diğer düğümlere iletilmesini ve yeni bir bağlantı yarışının başlamasını sağlar
+- FoxQL applications have a chaotic environment by its nature.
+- The availabilty of the data depends on the accessbility of the node. In other words, the query may happen at _t_ time.
+- You can use tokens as a reward to proof the accessbility and availabilty of the data.
+- FoxQL is _relatively_ centralized while signaling. Since signaling is a cheap solution, it's not a big deal. Communication keep happening as long as you wish.
+- Every action you take is going to produce a new hash query. The time you take to answer the question and cryptographic nonce is going to determine the difficulty of the action.
+- FoxQL doesn't interact with other nodes unless it is needed. Nodes terminate the connection when they are done, and wait for the next connection. This means there is no issue with performance and limitations at WebRTC.
+- End-users can transfer their data to other platforms. This blocks platform owners from have bad decisions.
+- FoxQL doesn't store any action. It does not track any data transaction between nodes. It is only responsible for the delivery of the data and ensuring the new connection race begins.
 
-## Kurulum
-[npm](https://www.npmjs.com)
+## Installation
 
-```bash
-npm i @foxql/foxql-peer
-```
-
-## Kurulum
-
-```javascript
-import foxql from '@foxql/foxql-peer';
+```js
+import foxql from "@foxql/foxql-peer";
 
 const node = new foxql({
-    maxNodeCount: 30, // Aktif bağlantı limiti
-    maxCandidateCallTime: 2000, // Düğüm adayları için sorulan soru kaç milisaniye dinlenmeli?
-    bridgeServer: {
-        host: '{YOUR_SELECTED_BRIDGE_URI}' // Hangi köprü sunucusunu kullanmak istiyorsun?
-    }
-})
-
-
+  maxNodeCount: 30, // Aktif bağlantı limiti
+  maxCandidateCallTime: 2000, // Düğüm adayları için sorulan soru kaç milisaniye dinlenmeli?
+  bridgeServer: {
+    host: "{YOUR_SELECTED_BRIDGE_URI}", // Hangi köprü sunucusunu kullanmak istiyorsun?
+  },
+});
 ```
 
-### Düğüm meta bilgileri
-```javascript
+## Node meta data
+
+```js
 node.setMetaData({
-    name: 'test-node',
-    description: 'test-desc'
-})
+  name: "test-node",
+  description: "test-desc",
+});
 ```
 
-### Etkinlik tanımı
-Düğüm etkinlikleri P2P bağlantının sağlanabilmesi ve veri alışverişi için kullanılır. Her etkinlik iki farklı aşamadan meydana gelir. Simulate durumunun true gelmesi etkinliğin webSocket aracılığı ile çağırıldığını belirtir.
+## Event Definition
 
-Simulate durumunun pozitif olduğu durumlarda yeni bir webRTC bağlantısına aday olup olmayacağınıza karar vermelisiniz.
+## Düğüm keşfi
 
-```javascript
-node.on('hello-world', async ({sender, message}, simulate = false)=>{
-	 if(simulate) { 
-        console.log('Simulate state')
-        // work on proof case
-        return true  // accept webRTC connection.
-    }
-    // webRTC 
-    this.reply(sender, {
-        hi: this.nodeId
-    })
-})
+## Sticky Nodes
+
+## Local Keşif
+
+## Starting a Node
+
+```js
+node.start();
 ```
 
-### Düğüm keşfi
-```javascript
-async function broadcast(){
-	 const answer = await node.ask({
-        transportPackage: {
-            p2pChannelName: 'hello-world',
-            message: 'Hello world'
-        }
-    })
-	return answer
-}
-```
-### Yapışkan düğümler
-stickyNode seçeneği bağlantıların karşılıklı sabitlenmesini sağlar. FoxQL varsayılan olarak her keşiften sonra bağlantıları öldürür.
-```javascript
-node.ask({
-	transportPackage: {
-		p2pChannelName: 'hello-world',
-		message: 'Hello world'
-	},
-	stickyNode: true
-})
-```
+## Contribute
 
-### Yerel Keşif
-Ağ üzerinde sorduğunuz her keşif sorusu varsayılan olarak bağlantılı olduğunuz tüm düğümlere tekrar sorulur. Bazı spesifik durumlar için soruyu sadece yeni adaylara yönlendirebilirsiniz. Bu düğüm trafiğinizi azaltmanızı sağlar.
-```javascript
-node.ask({
-	transportPackage: {
-		p2pChannelName: 'hello-world',
-		message: 'Hello world'
-	},
-	localWork: true
-})
-```
+If you'd like to contribute, please fork the repository and make changes as you'd like. Pull requests are warmly welcome.
 
-### Düğümü Başlatın
-```javascript
-node.start()
-```
+## Lisence
 
-## Katkıda bulun
-PullRequest açarak eklenmesini istediğiniz yeni özellikleri tartışabiliriz. Fark edeceğiniz üzere doküman Türkçe hazırlandı, ilk iş olarak bunu çevirmeye başlayabilirsiniz.
-
-## License
 [MIT](https://github.com/foxql/peer/blob/main/LICENSE)
