@@ -23,6 +23,7 @@ const node = new foxql({
   bridgeServer: {
     host: "{YOUR_SELECTED_BRIDGE_URI}", // which bridge server to use
   },
+  nodeAlias: 'demo-app'
 });
 ```
 

@@ -28,7 +28,8 @@ const node = new foxql({
     maxCandidateCallTime: 2000, // Düğüm adayları için sorulan soru kaç milisaniye dinlenmeli?
     bridgeServer: {
         host: '{YOUR_SELECTED_BRIDGE_URI}' // Hangi köprü sunucusunu kullanmak istiyorsun?
-    }
+    },
+    nodeAlias: 'demo-app'
 })
 
 
