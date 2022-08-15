@@ -1,6 +1,6 @@
 # FoxQL
 
-FoxQL used for create decentralized applications via WEB 2 technologies.
+FoxQL used for create decentralized applications over WEB 2 technologies.
 
 - FoxQL applications have a chaotic environment by its nature.
 - The availabilty of the data depends on the accessbility of the node. In other words, the query may happen at _t_ time.
@@ -17,15 +17,15 @@ FoxQL used for create decentralized applications via WEB 2 technologies.
 import foxql from "@foxql/foxql-peer";
 
 const node = new foxql({
-  maxNodeCount: 30, // Aktif bağlantı limiti
-  maxCandidateCallTime: 2000, // Düğüm adayları için sorulan soru kaç milisaniye dinlenmeli?
+  maxNodeCount: 30, // max connection limit
+  maxCandidateCallTime: 2000, // how long to wait for a response from a candidate node
   bridgeServer: {
-    host: "{YOUR_SELECTED_BRIDGE_URI}", // Hangi köprü sunucusunu kullanmak istiyorsun?
+    host: "{YOUR_SELECTED_BRIDGE_URI}", // which bridge server to use
   },
 });
 ```
 
-## Node meta data
+### Node meta data
 
 ```js
 node.setMetaData({
@@ -34,21 +34,74 @@ node.setMetaData({
 });
 ```
 
-## Event Definition
+### Event Definition
 
-## Düğüm keşfi
+Event definition is used to establish p2p communication and data transactions. Every event has two phases. _simulate_ means that the event is fetched over webSocket.
 
-## Sticky Nodes
+```js
+node.on("hello-world", async ({ sender, message }, simulate = false) => {
+  if (simulate) {
+    console.log("Simulate state");
+    // work on proof case
+    return true; // accept webRTC connection.
+  }
+  // webRTC
+  this.reply(sender, {
+    hi: this.nodeId,
+  });
+});
+```
 
-## Local Keşif
+### Node Discovery
 
-## Starting a Node
+```js
+async function broadcast() {
+  const answer = await node.ask({
+    transportPackage: {
+      p2pChannelName: "hello-world",
+      message: "Hello world",
+    },
+  });
+  return answer;
+}
+```
+
+### Local Discovery
+
+<!-- needs info -->
+
+```js
+node.ask({
+  transportPackage: {
+    p2pChannelName: "hello-world",
+    message: "Hello world",
+  },
+  localWork: true,
+});
+```
+
+### Sticky Nodes
+
+_stickyNode_ option is used to establish constant connection between nodes. This option is useful when you want to establish a permanent connection between nodes.
+FoxQL will terminate the connection after every discovery.
+
+```js
+node.ask({
+  transportPackage: {
+    p2pChannelName: "hello-world",
+    message: "Hello world",
+  },
+  stickyNode: true,
+});
+```
+
+### Starting a Node
 
 ```js
 node.start();
 ```
 
-## Contribute
+## Contribute
 
 If you'd like to contribute, please fork the repository and make changes as you'd like. Pull requests are warmly welcome.
 
