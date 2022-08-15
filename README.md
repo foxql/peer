@@ -1,15 +1,16 @@
 # FoxQL
 
-FoxQL used for create decentralized applications over WEB 2 technologies.
+FoxQL allows you to create decentralized applications using WEB2 technologies.
 
 - FoxQL applications have a chaotic environment by its nature.
 - The availabilty of the data depends on the accessbility of the node. In other words, the query may happen at _t_ time.
 - You can use tokens as a reward to proof the accessbility and availabilty of the data.
-- FoxQL is _relatively_ centralized while signaling. Since signaling is a cheap solution, it's not a big deal. Communication keep happening as long as you wish.
+- FoxQL is _relatively_ centralized in the process of signaling
+  . Since signaling is a cheap solution, it's not a big deal. Communication does happen as long as you want.
 - Every action you take is going to produce a new hash query. The time you take to answer the question and cryptographic nonce is going to determine the difficulty of the action.
-- FoxQL doesn't interact with other nodes unless it is needed. Nodes terminate the connection when they are done, and wait for the next connection. This means there is no issue with performance and limitations at WebRTC.
-- End-users can transfer their data to other platforms. This blocks platform owners from have bad decisions.
-- FoxQL doesn't store any action. It does not track any data transaction between nodes. It is only responsible for the delivery of the data and ensuring the new connection race begins.
+- FoxQL doesn't interact with other nodes unless it is needed. Nodes terminate the connection when they are done, and wait for the next connection.This means performance issues and limitations of WebRTC doesn't matter.
+- End-user can transfer their data to other platforms at will. This ensures that platform owners can't affect them badly.
+- FoxQL doesn't store any log. It does not track any data transaction between nodes. It only ensures that queries are forwarded to other nodes and a new connection race begins.
 
 ## Installation
 
@@ -68,7 +69,7 @@ async function broadcast() {
 
 ### Local Discovery
 
-<!-- needs info -->
+By default, every discovery query you make on the network is forwarded again to all nodes you are connected to. In some cases, you can only redirect the queries to new candidate nodes. This node reduces the traffic.
 
 ```js
 node.ask({
