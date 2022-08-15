@@ -8,13 +8,14 @@ import { v4 as uuidv4 } from 'uuid'
 import constantEvents from './src/events'
 
 class p2pNetwork extends bridge{
-    constructor({bridgeServer, maxNodeCount, maxCandidateCallTime, powPoolingtime, iceServers})
+    constructor({bridgeServer, maxNodeCount, maxCandidateCallTime, powPoolingtime, iceServers, dappAlias})
     {
         super(bridgeServer)
         this.signallingServers = {}
         this.events = {}
         this.replyChannels = {}
         this.status = 'not-ready'
+        this.dappAlias = dappAlias
         this.nodeId = nodeId()
         this.nodeAddress = null
         this.maxNodeCount = maxNodeCount
@@ -44,7 +45,8 @@ class p2pNetwork extends bridge{
     start(databaseListeners)
     {
         this.connectBridge(
-            this.listenSignallingServer
+            this.listenSignallingServer,
+            this.dappAlias
         )
 
         this.loadEvents(constantEvents)
@@ -84,7 +86,10 @@ class p2pNetwork extends bridge{
 
     upgradeConnection(key)
     {
-        this.signallingServers[key].signallingSocket.emit('upgrade', this.nodeId)
+        this.signallingServers[key].signallingSocket.emit('upgrade', {
+            nodeId: this.nodeId,
+            dappAlias: this.dappAlias
+        })
     }
 
     existSignallingServer(key)
@@ -194,10 +199,7 @@ class p2pNetwork extends bridge{
 
         if(nodeId === this.nodeId) return false
 
-        if(this.findNode(nodeId)) {
-            console.log('Bağlıyım zaten ya görmüyon mu ?')
-            return false
-        } // node currently connected.
+        if(this.findNode(nodeId)) return false// node currently connected.
 
         const listener = this.findNodeEvent(p2pChannelName) // find p2p event listener
 

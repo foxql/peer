@@ -8,12 +8,12 @@ export default class {
         this.bridgeSocket = null
     }
 
-    connectBridge(callback)
+    connectBridge(callback, dappAlias)
     {
         const socket =  io(this.host, {transports : ['websocket']})
         socket.on('connect', ()=> {
             this.bridgeStatus = 'connected'
-            socket.emit('upgrade-dapp')
+            socket.emit('upgrade-dapp', dappAlias)
             socket.emit('find-available-server', true)
         })
 
