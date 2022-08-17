@@ -6,7 +6,7 @@ const p2p = new network({
     maxNodeCount: 30,
     maxCandidateCallTime: 2000, // ms
     bridgeServer: {
-        host: 'http://127.0.0.1:1923'
+        host: 'https://foxql-bridge.herokuapp.com'
     },
     dappAlias: 'test-dapp'
 })

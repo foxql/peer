@@ -27,7 +27,7 @@ const node = new foxql({
     maxNodeCount: 30, // Aktif bağlantı limiti
     maxCandidateCallTime: 2000, // Düğüm adayları için sorulan soru kaç milisaniye dinlenmeli?
     bridgeServer: {
-        host: '{YOUR_SELECTED_BRIDGE_URI}' // Hangi köprü sunucusunu kullanmak istiyorsun?
+        host: 'https://foxql-bridge.herokuapp.com' // Hangi köprü sunucusunu kullanmak istiyorsun?
     },
     nodeAlias: 'demo-app'
 })

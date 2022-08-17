@@ -21,7 +21,7 @@ const node = new foxql({
   maxNodeCount: 30, // max connection limit
   maxCandidateCallTime: 2000, // how long to wait for a response from a candidate node
   bridgeServer: {
-    host: "{YOUR_SELECTED_BRIDGE_URI}", // which bridge server to use
+    host: "https://foxql-bridge.herokuapp.com", // which bridge server to use
   },
   nodeAlias: 'demo-app'
 });
