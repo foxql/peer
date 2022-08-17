@@ -1,10 +1,10 @@
-import bridge from './src/bridge'
-import signallingServer from './src/signalling'
-import database from './src/database'
-import sha256 from 'crypto-js/sha256'
-import { nodeId, node, sigStore, dataPool} from './src/utils'
+import bridge from './src/bridge.js'
+import signallingServer from './src/signalling.js'
+import database from './src/database.js'
+import sha256 from 'crypto-js/sha256.js'
+import { nodeId, node, sigStore, dataPool} from './src/utils/index.js'
 import { v4 as uuidv4 } from 'uuid'
-import constantEvents from './src/events'
+import constantEvents from './src/events.js'
 
 class p2pNetwork extends bridge{
     constructor({bridgeServer, maxNodeCount, maxCandidateCallTime, powPoolingtime, iceServers, dappAlias})

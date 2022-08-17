@@ -1,7 +1,7 @@
-import nodeId from './nodeId'
-import sigStore from './sigStore'
-import node from './node'
-import dataPool from './dataPool'
+import nodeId from './nodeId.js'
+import sigStore from './sigStore.js'
+import node from './node.js'
+import dataPool from './dataPool.js'
 export {
     nodeId,
     sigStore,

@@ -1,5 +1,5 @@
-import * as helloWorld from './exampleEvent'
-import * as readDatabase from './readDatabaseEvent'
+import * as helloWorld from './exampleEvent/.js'
+import * as readDatabase from './readDatabaseEvent/.js'
 export default [
     helloWorld,
     readDatabase
