@@ -10,14 +10,21 @@ export default class {
 
     connectBridge(callback, dappAlias)
     {
-        const socket =  io(this.host, {transports : ['websocket']})
+        const socket =  io(this.host)
         socket.on('connect', ()=> {
             this.bridgeStatus = 'connected'
             socket.emit('upgrade-dapp', dappAlias)
             socket.emit('find-available-server', true)
         })
-
+        let interval = setInterval(()=> {
+            if(this.status == 'ready'){
+                clearInterval(interval)
+                return
+            }
+            socket.emit('find-available-server', true)
+        }, 200)
         socket.on('find-available-server', callback.bind(this))
+        
         this.bridgeSocket = socket
     }
 

@@ -13,7 +13,7 @@ export default class {
 
     connectSignallingServer()
     {
-        const socket = io(this.host, {transports : ['websocket']})
+        const socket = io(this.host)
         socket.on('connect', ()=> {
             this.signallingStatus = 'connected'
             this.connectionCallback(this.host)

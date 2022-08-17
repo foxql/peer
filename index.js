@@ -20,7 +20,7 @@ class p2pNetwork extends bridge{
         this.nodeAddress = null
         this.maxNodeCount = maxNodeCount
         this.maxCandidateCallTime = maxCandidateCallTime || 900 // 900 = 0.9 second
-        this.powPoolingtime = powPoolingtime || 400 // ms
+        this.powPoolingtime = powPoolingtime || 1000 // ms
         this.constantSignallingServer = null
 
         this.indexedDb = new database()

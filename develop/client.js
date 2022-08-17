@@ -4,7 +4,8 @@ import * as dbConfig from './database'
 
 const p2p = new network({
     maxNodeCount: 30,
-    maxCandidateCallTime: 2000, // ms
+    maxCandidateCallTime: 1000, // ms
+    powPoolingtime: 500,
     bridgeServer: {
         host: 'https://foxql-bridge.herokuapp.com'
     },

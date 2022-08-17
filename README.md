@@ -20,6 +20,7 @@ import foxql from "@foxql/foxql-peer";
 const node = new foxql({
   maxNodeCount: 30, // max connection limit
   maxCandidateCallTime: 2000, // how long to wait for a response from a candidate node
+  powPoolingTime: 1000,
   bridgeServer: {
     host: "https://foxql-bridge.herokuapp.com", // which bridge server to use
   },
