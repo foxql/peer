@@ -1,4 +1,3 @@
-import 'regenerator-runtime/runtime'
 import bridge from './src/bridge'
 import signallingServer from './src/signalling'
 import database from './src/database'
