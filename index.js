@@ -16,7 +16,7 @@ class p2pNetwork extends bridge{
         this.replyChannels = {}
         this.status = 'not-ready'
         this.dappAlias = dappAlias
-        this.nodeId = nodeId()
+        this.nodeId = 'nothing'
         this.nodeAddress = null
         this.maxNodeCount = maxNodeCount
         this.maxCandidateCallTime = maxCandidateCallTime || 900 // 900 = 0.9 second
@@ -44,6 +44,7 @@ class p2pNetwork extends bridge{
 
     start(databaseListeners)
     {
+
         this.connectBridge(
             this.listenSignallingServer,
             this.dappAlias
@@ -55,6 +56,7 @@ class p2pNetwork extends bridge{
             this.indexedDb.open(databaseListeners)
         }
 
+        this.nodeId = nodeId()
         
     }
 
