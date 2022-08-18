@@ -24,7 +24,7 @@ const node = new foxql({
   bridgeServer: {
     host: "https://foxql-bridge.herokuapp.com", // which bridge server to use
   },
-  nodeAlias: 'demo-app'
+  dappAlias: 'demo-app'
 });
 ```
 
