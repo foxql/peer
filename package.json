@@ -1,6 +1,6 @@
 {
   "name": "@foxql/foxql-peer",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "Decentralized web apps over web2.",
   "main": "index.js",
   "scripts": {

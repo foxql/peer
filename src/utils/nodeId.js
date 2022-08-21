@@ -4,12 +4,19 @@ const localstorageKey = 'foxql-node-id'
 
 function find()
 {
+    if(localStorage == undefined){
+        return false
+    }
     return localStorage.getItem(localstorageKey) || false
 }
 
 function set()
 {
-    localStorage.setItem(localstorageKey, uuidv4())
+    const id = uuidv4()
+    if(localStorage == undefined) {
+        return id
+    }
+    localStorage.setItem(localstorageKey, id)
 }
 
 export default ()=> {
