@@ -27,13 +27,24 @@ const node = new foxql({
     maxNodeCount: 30, // Aktif bağlantı limiti
     maxCandidateCallTime: 2000, // Düğüm adayları için sorulan soru kaç milisaniye dinlenmeli?
     powPoolingTime: 1000, // Soru çözümü ne kadar sürecek?
-    bridgeServer: {
-        host: 'https://foxql-bridge.herokuapp.com' // Hangi köprü sunucusunu kullanmak istiyorsun?
-    },
     dappAlias: 'demo-app'
 })
 
 
+```
+
+### Websocket Ayarlarını Değiştirin
+
+```js
+import foxql from "@foxql/foxql-peer";
+
+const node = new foxql({
+    dappAlias: 'demo-app',
+    wssOptions: {
+        transport: ['websocket'],
+        jsonp: false
+    }
+});
 ```
 
 ### Düğüm meta bilgileri
