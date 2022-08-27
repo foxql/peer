@@ -3,14 +3,17 @@ import signallingServer from './src/signalling.js'
 import database from './src/database.js'
 import sha256 from 'crypto-js/sha256.js'
 import { nodeId, node, sigStore, dataPool} from './src/utils/index.js'
+import { bridgeNode } from './src/bootNodes.js'
 import constantEvents from './src/events.js'
 import pkg from 'uuid'
+
 const { v4: uuidv4 } = pkg
 
 class p2pNetwork extends bridge{
-    constructor({bridgeServer, maxNodeCount, maxCandidateCallTime, powPoolingtime, iceServers, dappAlias})
+    constructor({bridgeServer, maxNodeCount, maxCandidateCallTime, powPoolingtime, iceServers, dappAlias, wssOptions})
     {
-        super(bridgeServer)
+        super(bridgeServer || bridgeNode, wssOptions || {})
+        this.wssOptions = wssOptions || {}
         this.signallingServers = {}
         this.events = {}
         this.replyChannels = {}
@@ -75,7 +78,7 @@ class p2pNetwork extends bridge{
             }
             this.upgradeConnection(key)
             this.status = 'ready'
-        }, simulationListener ? this.eventSimulation.bind(this) : null)
+        }, simulationListener ? this.eventSimulation.bind(this) : null, this.wssOptions)
 
         const self = this
 
