@@ -6,11 +6,7 @@ const p2p = new network({
     maxNodeCount: 30,
     maxCandidateCallTime: 1000, // ms
     powPoolingtime: 500,
-    dappAlias: 'test-dapp',
-    wssOptions: {
-        transport: ['websocket'],
-        jsonp: false
-    }
+    dappAlias: 'test-dapp'
 })
 
 p2p.setMetaData({

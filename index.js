@@ -10,7 +10,7 @@ import pkg from 'uuid'
 const { v4: uuidv4 } = pkg
 
 class p2pNetwork extends bridge{
-    constructor({bridgeServer, maxNodeCount, maxCandidateCallTime, powPoolingtime, iceServers, dappAlias, wssOptions})
+    constructor({bridgeServer, maxNodeCount, maxCandidateCallTime, powPoolingtime, iceServers, dappAlias, wssOptions, nodeIdCache = true})
     {
         super(bridgeServer || bridgeNode, wssOptions || {})
         this.wssOptions = wssOptions || {}
@@ -42,6 +42,8 @@ class p2pNetwork extends bridge{
 
         this.nodes = {}
         this.connectedNodeCount = 0
+
+        this.nodeIdCache = nodeIdCache
         
     }
 
@@ -59,7 +61,7 @@ class p2pNetwork extends bridge{
             this.indexedDb.open(databaseListeners)
         }
 
-        this.nodeId = nodeId()
+        this.nodeId = nodeId(this.nodeIdCache)
         
     }
 
