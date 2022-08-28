@@ -13,6 +13,7 @@ export default class {
         this.signatures = {}
         
         this.whiteList = {}
+        this.livingSignatureCount = 0
     }
 
     generate(destroyTime)
@@ -21,6 +22,7 @@ export default class {
         const nonce = this.randomNonce()
         const key = sha256(uuidKey + nonce).toString()
         this.signatures[key] = nonce
+        this.livingSignatureCount += 1
         setTimeout(()=> {
             this.dropSignature(key)
         }, destroyTime)
@@ -35,6 +37,12 @@ export default class {
     dropSignature(key)
     {
         delete this.signatures[key]
+        this.livingSignatureCount -= 1
+    }
+
+    limitControl()
+    {
+        return this.livingSignatureCount < this.maxSignatureCount
     }
 
     find(key)
