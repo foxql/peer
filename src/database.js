@@ -12,7 +12,7 @@ export default class {
 
     open({version, onupgradeneeded, onerror})
     {
-        const indexedDb = window.indexedDB ||
+        const indexedDb = indexedDB || window.indexedDB ||
         window.mozIndexedDB ||
         window.webkitIndexedDB ||
         window.msIndexedDB ||
