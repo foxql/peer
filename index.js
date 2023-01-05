@@ -2,7 +2,7 @@ import bridge from './src/bridge.js'
 import signallingServer from './src/signalling.js'
 import database from './src/database.js'
 import sha256 from 'crypto-js/sha256.js'
-import { nodeId, node, sigStore, dataPool} from './src/utils/index.js'
+import { node, sigStore, dataPool, crypto} from './src/utils/index.js'
 import { bridgeNode } from './src/bootNodes.js'
 import constantEvents from './src/events.js'
 import pkg from 'uuid'
@@ -10,7 +10,7 @@ import pkg from 'uuid'
 const { v4: uuidv4 } = pkg
 
 class p2pNetwork extends bridge{
-    constructor({bridgeServer, maxNodeCount, maxCandidateCallTime, powPoolingtime, iceServers, dappAlias, wssOptions, nodeIdCache = true})
+    constructor({bridgeServer, maxNodeCount, maxCandidateCallTime, powPoolingtime, iceServers, dappAlias, wssOptions})
     {
         super(bridgeServer || bridgeNode, wssOptions || {})
         this.wssOptions = wssOptions || {}
@@ -25,6 +25,7 @@ class p2pNetwork extends bridge{
         this.maxCandidateCallTime = maxCandidateCallTime || 900 // 900 = 0.9 second
         this.powPoolingtime = powPoolingtime || 1000 // ms
         this.constantSignallingServer = null
+        this.keyPair = null
 
         this.indexedDb = new database()
 
@@ -42,13 +43,13 @@ class p2pNetwork extends bridge{
 
         this.nodes = {}
         this.connectedNodeCount = 0
-
-        this.nodeIdCache = nodeIdCache
         
     }
 
-    start(databaseListeners)
+    async start({databaseListeners, keyPair})
     {
+
+        if(keyPair == undefined) return false;
 
         this.connectBridge(
             this.listenSignallingServer,
@@ -61,8 +62,9 @@ class p2pNetwork extends bridge{
             this.indexedDb.open(databaseListeners)
         }
 
-        this.nodeId = nodeId(this.nodeIdCache)
-        
+        this.keyPair = keyPair
+        const publicKey = await window.crypto.subtle.exportKey("jwk", keyPair.publicKey);
+        this.nodeId = publicKey.n
     }
 
     listenSignallingServer({host}, simulationListener = true)
@@ -308,3 +310,5 @@ class p2pNetwork extends bridge{
 
 
 export default p2pNetwork
+
+export const crypto = crypto

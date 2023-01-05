@@ -18,18 +18,36 @@ Foxql, web2 teknolojileri ile merkezi olmayan uygulamalar geliştirmenizi sağla
 npm i @foxql/foxql-peer
 ```
 
-## Kurulum
+## Basit Kullanım
 
 ```javascript
-import foxql from '@foxql/foxql-peer';
 
 const node = new foxql({
-    maxNodeCount: 30, // Aktif bağlantı limiti
-    maxCandidateCallTime: 2000, // Düğüm adayları için sorulan soru kaç milisaniye dinlenmeli?
-    powPoolingTime: 1000, // Soru çözümü ne kadar sürecek?
-    dappAlias: 'demo-app'
-})
+  maxNodeCount: 30, // Aktif bağlantı limiti
+  maxCandidateCallTime: 2000, // Aday çağrısı kaç saniye sürecek?
+  powPoolingTime: 1000,
+  dappAlias: 'demo-app'
+});
 
+node.on("hello-world", async ({ sender, message }, simulate = false) => {
+  if (simulate) {
+    console.log("Simulate state");
+    // work on proof case
+    return true; // accept webRTC connection.
+  }
+  // webRTC
+  this.reply(sender, {
+    hi: this.nodeId,
+  });
+});
+
+async function init()
+{
+  const {keyPair} = await crypto.generateKeyPair() // kimlik için key pair oluştur
+  node.start({
+    keyPair: keyPair // keyPair değerini düğüme yükle
+  })
+}
 
 ```
 
@@ -45,6 +63,26 @@ const node = new foxql({
         jsonp: false
     }
 });
+```
+
+## KeyPair
+Düğüm kimliği için webCrypto api kullanarak yeni bir keyPair nesnesi oluşturabilirsiniz.
+
+### Yeni bir KeyPair oluşturmak
+Dump nesnesini saklayarak daha sonra kimliğinizi kurtarabilirsiniz.
+```js
+import { crypto } from "@foxql/foxql-peer";
+
+const {dump, keyPair} = await crypto.generateKeyPair()
+```
+
+### KeyPair kurtarmak
+```js
+import { crypto } from "@foxql/foxql-peer";
+
+const {dump, keyPair} = await crypto.generateKeyPair() // dump nesnesini yüklediğiniz yerden çağırın.
+
+const recoveredKeyPair = await crypto.importKeyPair(dump.publicKey, dump.privateKey)
 ```
 
 ### Düğüm meta bilgileri

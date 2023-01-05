@@ -1,4 +1,4 @@
-import network from '../index.js';
+import network, {crypto} from '../index.js';
 import events from './events'
 import * as dbConfig from './database'
 
@@ -9,6 +9,7 @@ const p2p = new network({
     dappAlias: 'test-dapp'
 })
 
+
 p2p.setMetaData({
     name: 'test-node',
     description: 'test-desc'
@@ -16,7 +17,15 @@ p2p.setMetaData({
 
 p2p.loadEvents(events)
 
-p2p.start()
+async function init()
+{
+    const {keyPair} = await crypto.generateKeyPair()
+    p2p.start({
+        keyPair: keyPair
+    })
+}
+
+init()
 
 window.testPOW = async ()=> {
     const answer = await p2p.ask({

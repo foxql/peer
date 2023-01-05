@@ -13,9 +13,14 @@ FoxQL allows you to create decentralized applications using WEB2 technologies.
 - FoxQL doesn't store any log. It does not track any data transaction between nodes. It only ensures that queries are forwarded to other nodes and a new connection race begins.
 
 ## Installation
+```bash
+npm i @foxql/foxql-peer
+```
+
+## Basic Usage
 
 ```js
-import foxql from "@foxql/foxql-peer";
+import foxql, {crypto} from "@foxql/foxql-peer";
 
 const node = new foxql({
   maxNodeCount: 30, // max connection limit
@@ -23,6 +28,27 @@ const node = new foxql({
   powPoolingTime: 1000,
   dappAlias: 'demo-app'
 });
+
+node.on("hello-world", async ({ sender, message }, simulate = false) => {
+  if (simulate) {
+    console.log("Simulate state");
+    // work on proof case
+    return true; // accept webRTC connection.
+  }
+  // webRTC
+  this.reply(sender, {
+    hi: this.nodeId,
+  });
+});
+
+async function init()
+{
+  const {keyPair} = await crypto.generateKeyPair()
+  node.start({
+    keyPair: keyPair
+  })
+}
+
 ```
 
 ### Change Websocket Options
@@ -37,6 +63,26 @@ const node = new foxql({
     jsonp: false
   }
 });
+```
+
+## KeyPair
+Use webCrypto for creating node idendity, sign and verify.
+
+### Create New KeyPair
+Keep the dump object to recover your identity.
+```js
+import { crypto } from "@foxql/foxql-peer";
+
+const {dump, keyPair} = await crypto.generateKeyPair()
+```
+
+### Recovery KeyPair
+```js
+import { crypto } from "@foxql/foxql-peer";
+
+const {dump, keyPair} = await crypto.generateKeyPair() // load dump object from your storage.
+
+const recoveredKeyPair = await crypto.importKeyPair(dump.publicKey, dump.privateKey)
 ```
 
 
@@ -108,12 +154,6 @@ node.ask({
   },
   stickyNode: true,
 });
-```
-
-### Starting a Node
-
-```js
-node.start();
 ```
 
 ## Contribute
